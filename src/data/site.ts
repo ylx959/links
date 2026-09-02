@@ -4,7 +4,7 @@ import { groups, footerLinks } from './links'
 
 export const site: SiteConfig = {
   meta: {
-    title: 'YLX | Linkhub',
+    title: 'YLX | LinkTree',
     description: profile.headline,
     url: 'https://example.com',
   },
