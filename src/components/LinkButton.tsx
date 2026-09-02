@@ -1,5 +1,5 @@
 import { icons } from '../icons/registry'
-import { isExternal, type LinkItem } from '../data'
+import { newTabProps, type LinkItem } from '../data'
 
 /**
  * Pill outline button: the brand mark sits in a filled puck on the right. On hover the puck
@@ -13,7 +13,7 @@ import { isExternal, type LinkItem } from '../data'
 
 /**
  * 圓圈位移與文字讓位共用這一組時間 — 要調快慢改這裡就好。
- * 進場 1000ms（`group-hover:duration-1000`），退場 300ms：
+ * 進場 1000ms（`group-hover:duration-1000`），退場 600ms：
  * 滑開時應該立刻收回，用同樣的長度會拖沓。
  */
 const TRAVEL = 'duration-600 ease-out group-hover:duration-1000'
@@ -23,12 +23,11 @@ const SWAP = 'duration-200 group-hover:duration-500'
 
 export function LinkButton({ item }: { item: LinkItem }) {
   const Icon = icons[item.icon]
-  const external = isExternal(item)
 
   return (
     <a
       href={item.href}
-      {...(external ? { target: '_blank', rel: 'noreferrer noopener' } : {})}
+      {...newTabProps(item)}
       className="group @container relative flex h-12 items-center rounded-full border-[0.25px] border-ink/30 bg-black/4 transition-transform duration-200 ease-out active:scale-[0.995]"
     >
       {/* 內距放在這裡而不是 <a>：container-type 以內容框計算 cqw，

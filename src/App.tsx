@@ -15,7 +15,6 @@ export default function App() {
   useGSAP(() => playEntrance(root.current), { scope: root })
 
   return (
-    
     <main
       ref={root}
       // 整塊的垂直位置。justify-center 會把剩餘空間平分到上下，所以單獨加大 pt

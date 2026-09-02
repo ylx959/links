@@ -1,6 +1,6 @@
 import gsap from 'gsap'
 
-export const entrance = {
+const entrance = {
   /** Start offset in px. Negative = starts above and drops into place. */
   y: -16,
   duration: 1.5,
@@ -15,7 +15,7 @@ export const entrance = {
  * Skipped entirely under `prefers-reduced-motion`.
  * Runs inside a `useGSAP()` context, which reverts the matchMedia on unmount.
  */
-export function playEntrance(target: Element | null) {
+export function playEntrance(target: Element | null): void {
   if (!target) return
 
   // A background tab throttles requestAnimationFrame, so the tween would sit at
@@ -36,6 +36,4 @@ export function playEntrance(target: Element | null) {
       clearProps: 'transform,opacity,visibility',
     })
   })
-
-  return mm
 }

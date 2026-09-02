@@ -1,5 +1,3 @@
 export type { Avatar, LinkGroup, LinkItem, Profile, Quote, SiteConfig, SiteMeta } from './types'
-export { profile } from './profile'
-export { groups, footerLinks } from './links'
 export { site } from './site'
-export { visibleGroups, isExternal } from './selectors'
+export { visibleGroups, newTabProps } from './selectors'

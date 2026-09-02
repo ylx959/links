@@ -1,44 +1,29 @@
 @import 'tailwindcss';
 
-/* ---- Semantic tokens (light) -------------------------------------------- */
+/* ---- Semantic tokens ------------------------------------------------------
+   只有這一組。刻意不做 prefers-color-scheme 深色版本 — 版面固定淺色，
+   系統切深色也不變。index.html 的 <meta name="color-scheme" content="light">
+   要一起維持 light，否則捲軸與表單元件還是會被瀏覽器畫成深色。
+   -------------------------------------------------------------------------- */
 :root {
-  --page: #fafafa;
+  --page: #ffffff;
   --raised: #ffffff;
   --ink: #18181b;
   --ink-muted: #71717a;
   --ink-faint: #a1a1aa;
   --line: #e6e6e4;
-  --line-strong: #d4d4d0;
   --ring: #18181b;
   --shadow: 0 1px 2px rgb(24 24 27 / 0.04), 0 8px 24px -12px rgb(24 24 27 / 0.12);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --page: #0c0c0d;
-    --page-edge: #111112;
-    --raised: #161618;
-    --ink: #f4f4f5;
-    --ink-muted: #a1a1aa;
-    --ink-faint: #71717a;
-    --line: #262629;
-    --line-strong: #3a3a3f;
-    --ring: #f4f4f5;
-    --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px -12px rgb(0 0 0 / 0.6);
-  }
 }
 
 /* ---- Expose tokens to Tailwind utilities -------------------------------- */
 @theme inline {
   --color-page: var(--page);
-  --color-page-edge: var(--page-edge);
   --color-raised: var(--raised);
   --color-ink: var(--ink);
   --color-ink-muted: var(--ink-muted);
   --color-ink-faint: var(--ink-faint);
   --color-line: var(--line);
-  --color-line-strong: var(--line-strong);
-  --color-ring: var(--ring);
 
   --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-serif: 'Newsreader', ui-serif, Georgia, 'Times New Roman', serif;
@@ -52,10 +37,9 @@
   }
 
   body {
-    background:
-      radial-gradient(120% 60% at 50% 100%, var(--page-edge) 0%, transparent 70%),
-      var(--page);
-    background-attachment: fixed;
+    /* 一定要明講。留空的話 body 是透明的，畫面顏色就交給瀏覽器的 canvas，
+       而 canvas 會跟著系統深淺色走 — 那就是背景會自己變黑的原因。 */
+    background: var(--page);
     color: var(--ink);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
@@ -77,6 +61,6 @@
   }
 }
 
-::selection{
+::selection {
   color: blue;
 }

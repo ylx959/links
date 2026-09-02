@@ -181,8 +181,8 @@ import type { LinkItem } from '../data'            // type import
 也可以混寫：
 
 ```ts
-import { isExternal, type LinkItem } from '../data'
-//       ^ 真的值        ^ 只是型別
+import { newTabProps, type LinkItem } from '../data'
+//       ^ 真的值         ^ 只是型別
 ```
 
 ### 4.4 路徑怎麼看
@@ -200,10 +200,8 @@ import './index.css'                      // 沒有 { } → 只是「執行這�
 
 ```ts
 export type { Avatar, LinkGroup, LinkItem, Profile, Quote, SiteConfig, SiteMeta } from './types'
-export { profile } from './profile'
-export { groups, footerLinks } from './links'
 export { site } from './site'
-export { visibleGroups, isExternal } from './selectors'
+export { visibleGroups, newTabProps } from './selectors'
 ```
 
 這個檔案**自己什麼都沒定義**，它只是把資料夾裡的東西收集起來、統一從一個門口出去。
@@ -212,15 +210,19 @@ export { visibleGroups, isExternal } from './selectors'
 有了它，元件可以寫：
 
 ```ts
-import { isExternal, type LinkItem } from '../data'
+import { newTabProps, type LinkItem } from '../data'
 ```
 
 而不是：
 
 ```ts
-import { isExternal } from '../data/selectors'
+import { newTabProps } from '../data/selectors'
 import type { LinkItem } from '../data/types'
 ```
+
+門面只放**元件真的會用到的東西**。`profile` / `groups` / `footerLinks` 沒有各自
+再轉出一次，因為 `site` 裡面就有它們了 — 同一份資料只留一條路徑，才不會有兩個
+地方拿到同一個東西、哪天改錯一邊。
 
 **真正的好處不是少打字，是「換位置不用改元件」**：哪天你把 `selectors.ts` 拆成兩個檔，
 只要 `index.ts` 的門面不變，所有元件一行都不用動。
@@ -386,7 +388,7 @@ export const profile: Profile = {
 
 ```ts
 export function visibleGroups(groups: LinkGroup[]): LinkGroup[]
-export function isExternal(item: LinkItem): boolean
+export function newTabProps(item: LinkItem): { target?: '_blank'; rel?: string }
 ```
 
 **為什麼要有這一層？** 因為「哪些該顯示」是**規則**，不是資料也不是樣式。
@@ -395,7 +397,12 @@ export function isExternal(item: LinkItem): boolean
 `visibleGroups` 做兩件事：先丟掉 `hidden: true` 的項目，再丟掉因此變空的群組
 （不然會留下一個有標題卻沒東西的區塊）。
 
-`isExternal` 決定要不要 `target="_blank"`：
+`newTabProps` 回傳「要掛在 `<a>` 上的屬性」：離站的連結給
+`target="_blank" rel="noreferrer noopener"`，留在站內的給一個空物件。
+空物件展開（`{...newTabProps(item)}`）等於什麼都沒加，所以兩個元件
+（`LinkButton` 和 `IconLinkRow`）都直接展開就好，不用各自寫一次三元運算。
+
+判斷的規則寫在同一個檔案裡的 `isExternal`（沒有 export，只有 `newTabProps` 用）：
 有寫 `external` 就聽你的；沒寫就看網址是不是 `http(s)://` 開頭
 （所以 `mailto:` 不會另開分頁 — 那才是對的行為）。
 
@@ -406,7 +413,7 @@ export function isExternal(item: LinkItem): boolean
 ```ts
 export const site: SiteConfig = {
   meta: {
-    title: `${profile.name} — Links`,        // 從 profile 算出來，不重複寫
+    title: 'YLX | Linkhub',
     description: profile.headline,
     url: 'https://example.com',
   },
@@ -415,8 +422,8 @@ export const site: SiteConfig = {
 }
 ```
 
-`` `${...}` `` 是樣板字串（template literal），用反引號包起來，
-裡面的 `${}` 會被求值後插進去。所以你改名字，標題和 copyright 會一起改。
+`footer` 那行的 `` `${...}` `` 是樣板字串（template literal），用反引號包起來，
+裡面的 `${}` 會被求值後插進去。所以你改名字、或跨年，copyright 會自己跟著改。
 
 ### 7.6 `index.ts` — 門面
 
@@ -433,7 +440,7 @@ export const site: SiteConfig = {
 一般人會裝 `lucide-react` 之類的。這裡選擇**把 SVG 路徑內嵌**，因為：
 
 1. 少一個依賴，打包更小
-2. 每個圖示都吃 `currentColor`，所以文字什麼顏色，圖示就什麼顏色 — 深色模式自動對
+2. 每個圖示都吃 `currentColor`，所以文字什麼顏色，圖示就什麼顏色 — 換配色不用逐個改
 3. 可以用 `keyof typeof` 做出型別安全（見下）
 
 ### 三個工廠函式
@@ -509,11 +516,12 @@ useGSAP(() => playEntrance(root.current), { scope: root })
 版面：
 
 ```tsx
-className="mx-auto flex min-h-dvh max-w-[28rem] flex-col justify-center px-6 pt-40 pb-16"
+className="mx-auto flex min-h-dvh max-w-[28rem] flex-col justify-center px-6 pt-48 pb-8"
 ```
 
-`pt-40 pb-16` 上下留白不對稱 → 整塊往下沉。
-（註解裡有寫：內容超過視窗高度時 `justify-center` 會失效，這時 `pt` 就是 1:1 的下移量。）
+`pt-48 pb-8` 上下留白不對稱 → 整塊往下沉。
+（註解裡有寫：`justify-center` 會把剩餘空間平分到上下，所以只加大 `pt` 只會下移一半。
+要精準下移 N px：`pt` 加 N、`pb` 減 N，總和不變。一格 = 4px。）
 
 條件渲染：
 
@@ -527,8 +535,9 @@ className="mx-auto flex min-h-dvh max-w-[28rem] flex-col justify-center px-6 pt-
 ### 9.3 `ProfileHeader.tsx`
 
 ```tsx
-const initialsFrom = (name: string) =>
-  name.split(/[\s-]+/).slice(0, 2).map((p) => p[0]?.toUpperCase() ?? '').join('')
+function initialsFrom(name: string): string {
+  return name.split(/[\s-]+/).slice(0, 2).map((p) => p[0]?.toUpperCase() ?? '').join('')
+}
 ```
 
 `"Yang Lin-Hsuan"` → 用空白或連字號切開 → 取前兩段 → 各取首字母大寫 → `"YL"`。
@@ -595,7 +604,7 @@ title={item.label}        // 滑鼠停住時的提示泡泡
 
 1. **失敗退場**：`onError` → `setFailed(true)` → 改顯示縮寫
 2. **取景**：`zoom` / `offsetX` / `offsetY` 怎麼變成真的位置（見 §13.1）
-3. **hover 互動**：圓框從 120px 張到 130px，同時觸發波動動畫
+3. **hover 互動**：圓框從 108px（`AVATAR_SIZE`）張到 120px（`AVATAR_HOVER_SIZE`），同時觸發波動動畫
 
 ```tsx
 const [failed, setFailed] = useState(false)
@@ -625,7 +634,7 @@ const [open,   setOpen]   = useState(false)
 ### 10.2 `entrance.ts` — 進場
 
 ```ts
-export const entrance = { y: -16, duration: 1.5, delay: 0.15, ease: 'power2.out' } as const
+const entrance = { y: -16, duration: 1.5, delay: 0.15, ease: 'power2.out' } as const
 ```
 
 參數抽出來放最上面，**要調動畫改這裡就好**。
@@ -656,26 +665,37 @@ mm.add('(prefers-reduced-motion: no-preference)', () => {
 
 ### 10.3 `avatarRing.ts` — 頭貼 hover 的波動框
 
-動的是**取景框自己的 `border-radius`**，在四組不規則圓角之間循環：
+動的是**取景框自己的 `border-radius`**。框本身就是那一圈線（`outline` 會跟著
+border-radius 走），所以邊界波到哪裡，照片就露到哪裡。
+
+補間的**不是形狀，是一個角度**：
 
 ```ts
-const shapes = ['58% 42% 45% 55% / 48% 45% 55% 52%', ...]
+const wave = { angle: 0, amp: 0 }
+gsap.to(wave, { angle: `+=${TAU}`, duration: MORPH, ease: 'none', repeat: -1, onUpdate: write })
 ```
 
-四組的**結構必須一模一樣**（八個百分比 + 中間一條斜線），GSAP 才有辦法
-逐個數字做補間。
+`write()` 把 `angle` 換算成八個百分比。每條邊的兩個半徑固定加總 100%
+（邊上才不會留下一段直線），剩下四個自由度各差四分之一相位，凸起就會沿著邊繞。
+
+**為什麼不逐格補間一串寫好的形狀**：那樣每一格的 ease 會在交界處把速度歸零，
+接縫就會卡一下；而且正圓在 CSSOM 永遠被收合成單一個 `50%`，字串對不上。
+正弦本來就是週期的，繞回原點時值和速度都連續，接縫根本不存在。
 
 為什麼不用 `rotation` 製造「繞著跑」的感覺：轉的話裡面的照片會跟著轉。
-所以改成讓形狀本身輪替。
+
+進出場動的是**幅度 `amp`**（0 ↔ 1），不是形狀 — 圓和波之間沒有中間形態要對齊，
+所以滑開再滑回來、怎麼中斷都接得上。`angle` 從頭到尾不重設，暫停再續播是從原地
+接下去，不會跳一下。
+
+四個常數：`MORPH` 繞一圈的秒數、`AMP` 形變幅度、`ENTER` 進場時間、
+`SETTLE` 收回時間（收得比進場快 — 滑開就該立刻收，拖著會黏）。
 
 回傳一個 `{ show, hide }` 給元件的 hover 事件用：
 
 ```ts
 export type RingWobble = { show: () => void; hide: () => void }
 ```
-
-`show()` 裡的 `loop.invalidate().restart()`：`invalidate` 讓 keyframes 忘掉
-上次記住的起點，改從「現在的形狀」接下去 — 所以中途滑開再滑回來不會跳一下。
 
 ### 10.4 `useGSAP()` 為什麼一定要用
 
@@ -704,7 +724,7 @@ React 元件會被反覆建立與銷毀。動畫如果沒人收拾，元件消�
 
 ```css
 :root {
-  --page: #fafafa;      --raised: #ffffff;
+  --page: #ffffff;      --raised: #ffffff;
   --ink: #18181b;       --ink-muted: #71717a;   --ink-faint: #a1a1aa;
   --line: #e6e6e4;      --ring: #18181b;
 }
@@ -713,14 +733,22 @@ React 元件會被反覆建立與銷毀。動畫如果沒人收拾，元件消�
 名字取的是**用途**（page / ink / line）而不是顏色（gray-50 / zinc-900）。
 這是重點：換配色只改這裡，元件一行都不用動。
 
-**第二層：深色模式**
+**第二層：只有一組，不跟系統走**
 
-```css
-@media (prefers-color-scheme: dark) { :root { --page: #0c0c0d; --ink: #f4f4f5; ... } }
-```
+這個網站**刻意沒有深色模式**。做法是兩件事一起：
 
-只換掉變數的值。因為元件寫的是 `text-ink` 而不是 `text-zinc-900`，
-所以**整站深色模式是免費的，沒有任何一個元件需要寫 `dark:` 前綴**。
+1. `index.css` 裡沒有 `@media (prefers-color-scheme: dark)` 區塊 → token 永遠是上面那組
+2. `index.html` 的 `<meta name="color-scheme" content="light">` → 瀏覽器自己畫的東西
+   （捲軸、表單元件、還有 body 底下那層 canvas）也維持淺色
+
+**只做 1 不做 2 會出事**：body 如果沒有明確的 `background`，它是透明的，
+看到的顏色其實是瀏覽器 canvas 的顏色，而那個會跟著系統深淺色走。
+所以 `body { background: var(--page); }` 這行是必要的，不是裝飾。
+
+> 如果哪天要加回深色模式：把 `@media (prefers-color-scheme: dark) { :root { ... } }`
+> 補回去、meta 改成 `content="light dark"` 就好。因為元件寫的是 `text-ink`
+> 而不是 `text-zinc-900`，**不需要動任何一個元件、不需要寫 `dark:` 前綴**。
+> 這就是語意 token 的價值。
 
 **第三層：接到 Tailwind**
 
@@ -751,8 +779,8 @@ React 元件會被反覆建立與銷毀。動畫如果沒人收拾，元件消�
 
 全站的 CSS 過場也一併關掉（GSAP 那邊由 `matchMedia` 各自處理）。
 
-`body` 的背景是 `radial-gradient` + 底色，`background-attachment: fixed` 讓它
-不跟著捲動 — 這是那個「畫面下方微微亮起來」的效果。
+`body` 的背景就是一句 `background: var(--page)` — 純白、固定，不跟系統變。
+（早期版本這裡有一層 `radial-gradient` 讓畫面下方微微亮起來，後來拿掉了。）
 
 ---
 
@@ -773,11 +801,11 @@ React 元件會被反覆建立與銷毀。動畫如果沒人收拾，元件消�
 | 整體版面寬度 | `App.tsx` 的 `max-w-[28rem]` |
 | 整體上下位置 | `App.tsx` 的 `pt-48` / `pb-8`（pt 加多少、pb 減多少 = 往下多少） |
 | 區塊之間的距離 | `App.tsx` 的 `gap-9` |
-| 配色 | `src/index.css` 的 `:root`（淺色）和 `@media (prefers-color-scheme: dark)`（深色） |
+| 配色 | `src/index.css` 的 `:root`（只有這一組，不分深淺色） |
 | 字體 | `index.html` 的 Google Fonts `<link>` + `index.css` 的 `--font-sans` / `--font-serif` |
 | 進場動畫快慢 / 方向 | `src/animation/entrance.ts` 最上面的 `entrance` 物件 |
 | 按鈕 hover 圓點速度 | `LinkButton.tsx` 的 `TRAVEL` 常數 |
-| 頭貼波動速度 | `avatarRing.ts` 的 `MORPH` / `FLOAT` / `SETTLE` |
+| 頭貼波動速度 | `avatarRing.ts` 的 `MORPH` / `AMP` / `ENTER` / `SETTLE` |
 | 新增一個平台圖示 | `src/icons/registry.tsx` 加一個 key，然後就能在 `links.ts` 用了 |
 
 ### 新增圖示的完整步驟
@@ -799,7 +827,7 @@ sips -s format png avatar-source.heic --out /tmp/avatar.png
 npx --yes sharp-cli -i /tmp/avatar.png -o public/ resize 560 --format webp -q 90
 ```
 
-**為什麼要先縮小**：瀏覽器把 3000px 的圖降到 144px 顯示時，
+**為什麼要先縮小**：瀏覽器把 3000px 的圖降到 130px 顯示時，
 降取樣會產生雜訊感（你之前看到的「有噪音」就是這個）。
 先用 sharp 的 Lanczos 演算法縮好，畫面會乾淨很多。
 
@@ -819,8 +847,9 @@ npx --yes sharp-cli -i /tmp/avatar.png -o public/ resize 560 --format webp -q 90
    照片不是正方形，塞進正方形框時，長的那一邊會被裁掉。
    `object-position` 就是在滑動這個裁切窗 — 這部分**完全免費，永遠不會露白**。
 2. **`zoom` 造成的溢出**
-   `zoom: 1.2` 讓圖片實際是 144px、框是 120px，兩邊各多出 12px。
-   移動圖片本身（`left` / `top`）只能在這 12px 內，超過就露底。
+   `zoom: 1.2` 讓圖片實際是 130px（108 × 1.2），框平常是 108px、hover 時張到 120px。
+   移動圖片本身（`left` / `top`）只能在多出來的那一圈裡動，超過就露底。
+   額度是用**框最大的那一版**（120px）算的，所以兩個狀態都不會露白。
 
 `resolveNudge()` 做的事：**先用免費的第 1 種，用完了才動用第 2 種，
 兩種都用完就封頂**。所以現在無論 `offsetX` 填多大，都不會再出現白邊。
@@ -838,7 +867,7 @@ const viaCrop = Math.min(|total|, cropBudget)                       // 優先吃
 **另外兩個相關的坑**：
 
 - **`zoom` 用的是圖片的真實尺寸，不是 CSS `transform: scale()`**。
-  用 transform 的話，瀏覽器是先把原圖降到 120px、再把那張已經失真的點陣圖放大 →
+  用 transform 的話，瀏覽器是先把原圖降到 108px、再把那張已經失真的點陣圖放大 →
   雜訊。改成直接指定 `width/height`，瀏覽器只採樣一次，直接採到最終尺寸。
 - **邊框用 `outline` 不用 `border`**。`border` 會縮小內容盒，
   而裡面的 `<img>` 是 `absolute` 定位在內容盒上 → 永遠差 1px，就會有白邊。
@@ -854,7 +883,7 @@ const viaCrop = Math.min(|total|, cropBudget)                       // 優先吃
 ```tsx
 className="group @container relative flex h-12 ..."
 {/* 位移： */}
-group-hover:-translate-x-[calc(100cqw-47px)]
+group-hover:-translate-x-[calc(100cqw-47.5px)]
 ```
 
 `@container` 讓這顆按鈕變成一個「容器」，`100cqw` 就是**它自己的寬度**。
@@ -864,8 +893,8 @@ group-hover:-translate-x-[calc(100cqw-47px)]
 （`pl-6 pr-14` = 80px），`100cqw` 就變成「寬度 − 80px」，圓點永遠滑不到底。
 **修法：把內距移到裡面那個 `<span>`**，讓 `<a>` 自己沒有內距。
 
-`47px` 的來源：圓點 40px（`size-10`）+ 兩側各 3.5px 內縮。
-那個 3.5 而不是 4，是因為外框是 `border-[0.5px]`，上下左右各吃掉 0.5px。
+`47.5px` 的來源：圓點 40px（`size-10`）+ 兩側各 3.75px 內縮。
+那個 3.75 而不是 4，是因為外框是 `border-[0.25px]`，高寬各被吃掉 0.5px（兩邊各 0.25）。
 
 ### 13.3 為什麼「資料先、內容後」
 
@@ -873,7 +902,7 @@ group-hover:-translate-x-[calc(100cqw-47px)]
 
 - 改文案不用碰 React
 - icon 打錯字建置就爆，不會上線才發現
-- 深色模式沒有寫任何一行 `dark:`
+- 全站配色只有一組 CSS 變數，元件裡沒有一行寫死的色碼
 - 想加第二組連結（Work / Personal），`LinkGroup` 已經支援，元件不用改
 - 想暫時藏一顆按鈕，`hidden: true` 就好，不用註解掉程式碼
 
@@ -924,4 +953,4 @@ group-hover:-translate-x-[calc(100cqw-47px)]
 2. **`links.ts` 還有預留位置**：`mailto:hello@example.com` 和 `/resume.pdf`
    （後者需要你真的把 `resume.pdf` 放進 `public/`）。
 3. **`site.ts` 的 `url: 'https://example.com'`** 要換成真正的網址。
-4. **README 寫的是 `public/avatar.jpg`**，實際是 `avatar.webp`，可以順手改掉。
+   （這個欄位目前沒有任何地方讀它 — 等你要加 canonical 連結或社群分享卡片時才會用到。）

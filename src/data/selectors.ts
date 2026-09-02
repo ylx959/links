@@ -8,7 +8,16 @@ export function visibleGroups(groups: LinkGroup[]): LinkGroup[] {
 }
 
 /** `external` when set, otherwise: anything leaving the site opens in a new tab. */
-export function isExternal(item: LinkItem): boolean {
+function isExternal(item: LinkItem): boolean {
   if (item.external !== undefined) return item.external
   return /^https?:\/\//i.test(item.href)
+}
+
+/**
+ * The `<a>` attributes that open a link in a new tab, or nothing at all for links
+ * that stay on the site (`mailto:`, `/resume.pdf`). Always safe to spread.
+ */
+export function newTabProps(item: LinkItem): { target?: '_blank'; rel?: string } {
+  if (!isExternal(item)) return {}
+  return { target: '_blank', rel: 'noreferrer noopener' }
 }

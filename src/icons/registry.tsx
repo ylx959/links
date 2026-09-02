@@ -1,4 +1,4 @@
-import type { SVGProps } from 'react'
+import type { ReactNode, SVGProps } from 'react'
 
 /**
  * Every icon is an inline SVG so the site ships zero icon dependencies and
@@ -20,7 +20,7 @@ const brand = (path: string) =>
  * 非方形的自訂標記。沿用原稿的 viewBox，preserveAspectRatio 預設會等比置中，
  * 所以 `size-4` 這種方形尺寸不會把它壓扁。原始檔留在 `src/assets/`。
  */
-const mark = (viewBox: string, children: React.ReactNode) =>
+const mark = (viewBox: string, children: ReactNode) =>
   function MarkIcon(props: IconProps) {
     return (
       <svg viewBox={viewBox} fill="currentColor" aria-hidden="true" {...props}>
@@ -29,7 +29,7 @@ const mark = (viewBox: string, children: React.ReactNode) =>
     )
   }
 
-const stroke = (children: React.ReactNode) =>
+const stroke = (children: ReactNode) =>
   function StrokeIcon(props: IconProps) {
     return (
       <svg

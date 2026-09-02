@@ -14,7 +14,7 @@ export const groups: LinkGroup[] = [
 
 /** 只有圖示、排在 copyright 上面。label 會變成螢幕閱讀器與 hover 提示的名稱。 */
 export const footerLinks: LinkItem[] = [
-  { id: 'email', label: 'Email', href: 'mailto:hello@example.com', icon: 'mail' },
+  { id: 'email', label: 'Email', href: 'mailto:yanglinxuan021@gmail.com', icon: 'mail' },
   { id: 'resume', label: 'Résumé', href: '/resume.pdf', icon: 'resume' },
   { id: 'instagram', label: 'Instagram', href: 'https://www.instagram.com/linxuan__0421/', icon: 'instagram' },
 ]
