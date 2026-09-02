@@ -2,7 +2,7 @@ import type { Profile } from './types'
 
 export const profile: Profile = {
   name: 'Yang Lin-Hsuan',
-  headline: 'CS student · create through both design and code',
+  headline: 'ARCH/CS student · create through both design and code',
   avatar: {
     src: '/avatar.webp',
     zoom: 1.2,
