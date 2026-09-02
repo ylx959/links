@@ -15,7 +15,7 @@ export function ProfileHeader({ name, headline, avatar }: Profile) {
     <header className="flex flex-col items-center text-center">
       <Avatar {...avatar} initials={avatar.initials ?? initialsFrom(name)} />
       <h1 className="mt-6 text-[15px] font-semibold tracking-tight">{name}</h1>
-      <p className="mt-1 text-[15px] tracking-tight text-ink-muted">{headline}</p>
+      <p className="mt-1 text-[13px] tracking-tight text-ink-muted">{headline}</p>
     </header>
   )
 }

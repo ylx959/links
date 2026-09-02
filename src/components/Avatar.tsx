@@ -4,14 +4,14 @@ import { createRingWobble, type RingWobble } from '../animation/avatarRing'
 import type { Avatar as AvatarData } from '../data'
 
 /** 頭貼直徑（px）。改這一個數字就好 — 容器、圖片、縮寫字級都跟著走。 */
-export const AVATAR_SIZE = 120
+export const AVATAR_SIZE = 108
 
 /**
  * hover 時取景框張開到這個直徑（px）。照片本身不跟著放大 — 它維持
  * `AVATAR_SIZE * zoom` 的尺寸，只是圓框變大、露出原本被裁掉的邊。
  * 所以這個數字不能超過照片的實際寬高，否則圓框邊緣會露出底色。
  */
-export const AVATAR_HOVER_SIZE = 130
+export const AVATAR_HOVER_SIZE = 120
 
 /**
  * Turns one requested nudge into the two mechanisms that can deliver it without

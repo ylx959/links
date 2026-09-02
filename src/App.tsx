@@ -18,9 +18,10 @@ export default function App() {
     
     <main
       ref={root}
-      // 上下留白不對稱，整塊往下沉。內容加留白超過視窗高度時 justify-center 失效，
-      // pt 就是 1:1 的下移量 — 想再往下就加大 pt。
-      className="mx-auto flex min-h-dvh max-w-[28rem] flex-col justify-center px-6 pt-40 pb-16"
+      // 整塊的垂直位置。justify-center 會把剩餘空間平分到上下，所以單獨加大 pt
+      // 只會下移一半。要精準下移 N px：pt 加 N、pb 減 N（總和不變 = 剩餘空間不變）。
+      // 一格 = 4px，所以 pt-40→pt-48 / pb-16→pb-8 就是往下 32px。
+      className="mx-auto flex min-h-dvh max-w-[28rem] flex-col justify-center px-6 pt-48 pb-8"
     >
       <div className="flex flex-col gap-9">
         <ProfileHeader {...profile} />

@@ -771,7 +771,7 @@ React 元件會被反覆建立與銷毀。動畫如果沒人收拾，元件消�
 | 按鈕高度 | `LinkButton.tsx` 的 `h-12` |
 | 按鈕間距 | `LinkList.tsx` 的 `gap-2.5` |
 | 整體版面寬度 | `App.tsx` 的 `max-w-[28rem]` |
-| 整體上下位置 | `App.tsx` 的 `pt-40` |
+| 整體上下位置 | `App.tsx` 的 `pt-48` / `pb-8`（pt 加多少、pb 減多少 = 往下多少） |
 | 區塊之間的距離 | `App.tsx` 的 `gap-9` |
 | 配色 | `src/index.css` 的 `:root`（淺色）和 `@media (prefers-color-scheme: dark)`（深色） |
 | 字體 | `index.html` 的 Google Fonts `<link>` + `index.css` 的 `--font-sans` / `--font-serif` |
