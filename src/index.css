@@ -3,7 +3,6 @@
 /* ---- Semantic tokens (light) -------------------------------------------- */
 :root {
   --page: #fafafa;
-  --page-edge: #f1f1f0;
   --raised: #ffffff;
   --ink: #18181b;
   --ink-muted: #71717a;
@@ -79,6 +78,5 @@
 }
 
 ::selection{
-  background-color: white;
   color: blue;
 }

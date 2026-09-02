@@ -11,6 +11,7 @@ const initialsFrom = (name: string) =>
 
 export function ProfileHeader({ name, headline, avatar }: Profile) {
   return (
+    
     <header className="flex flex-col items-center text-center">
       <Avatar {...avatar} initials={avatar.initials ?? initialsFrom(name)} />
       <h1 className="mt-6 text-[15px] font-semibold tracking-tight">{name}</h1>

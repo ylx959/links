@@ -4,7 +4,7 @@ import { groups, footerLinks } from './links'
 
 export const site: SiteConfig = {
   meta: {
-    title: `${profile.name} — Links`,
+    title: 'YLX | Linkhub',
     description: profile.headline,
     url: 'https://example.com',
   },

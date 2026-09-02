@@ -15,6 +15,7 @@ export default function App() {
   useGSAP(() => playEntrance(root.current), { scope: root })
 
   return (
+    
     <main
       ref={root}
       // 上下留白不對稱，整塊往下沉。內容加留白超過視窗高度時 justify-center 失效，
