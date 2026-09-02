@@ -1,32 +1,27 @@
-# React + TypeScript + Vite
+# Links
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Yang Lin-Hsuan's link hub. One page that gathers the portfolio, GitHub, LinkedIn and contact details behind a single URL — the one you paste where only one link fits, like an Instagram bio.
 
-Currently, two official plugins are available:
+## Development
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the Oxlint configuration
-
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
-
-```json
-{
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
-  }
-}
+```bash
+npm install
+npm run dev      # http://localhost:5173
+npm run build    # outputs to dist/
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+React + TypeScript + Tailwind v4 + Vite. GSAP drives the entrance animation.
+
+## Editing the content
+
+Everything lives in `src/data/`. No component needs touching:
+
+| File | Holds |
+|---|---|
+| `profile.ts` | Name, one-line headline, avatar, quote |
+| `links.ts` | `groups` — the main buttons; `footerLinks` — the small icons above the copyright |
+| `site.ts` | Page title, description, canonical URL |
+
+The `icon` field only accepts a name registered in `src/icons/registry.tsx` (github, linkedin, x, instagram, youtube, threads, discord, portfolio, mail, resume, link). A typo fails the build rather than rendering a blank slot. To add a platform, drop an SVG into the registry — its key becomes a valid option automatically.
+
+The avatar is read from `public/avatar.jpg`. Without that file the page falls back to the `initials` set in `profile.ts`.

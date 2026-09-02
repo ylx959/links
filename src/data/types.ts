@@ -26,10 +26,20 @@ export interface LinkGroup {
 
 export interface Avatar {
   src: string
+  /**
+   * Scale applied inside the circle, 1 = untouched. Raise it when the source
+   * carries wide margins or thin linework: cropping in fills the frame and
+   * thickens the strokes, which is what keeps line art legible at this size.
+   */
+  zoom?: number
+  /** Horizontal nudge inside the circle, in % of the frame. Positive moves the image right. */
+  offsetX?: number
+  /** Vertical nudge inside the circle, in % of the frame. Positive moves the image down. */
+  offsetY?: number
   /** Describe the person, not the file. Empty string marks it decorative. */
   alt: string
-  /** Shown while the image loads and if it fails. */
-  initials: string
+  /** Shown if the image fails to load. Falls back to the initials of `profile.name`. */
+  initials?: string
 }
 
 export interface Quote {
