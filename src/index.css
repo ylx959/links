@@ -1,0 +1,84 @@
+@import 'tailwindcss';
+
+/* ---- Semantic tokens (light) -------------------------------------------- */
+:root {
+  --page: #fafafa;
+  --page-edge: #f1f1f0;
+  --raised: #ffffff;
+  --ink: #18181b;
+  --ink-muted: #71717a;
+  --ink-faint: #a1a1aa;
+  --line: #e6e6e4;
+  --line-strong: #d4d4d0;
+  --ring: #18181b;
+  --shadow: 0 1px 2px rgb(24 24 27 / 0.04), 0 8px 24px -12px rgb(24 24 27 / 0.12);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --page: #0c0c0d;
+    --page-edge: #111112;
+    --raised: #161618;
+    --ink: #f4f4f5;
+    --ink-muted: #a1a1aa;
+    --ink-faint: #71717a;
+    --line: #262629;
+    --line-strong: #3a3a3f;
+    --ring: #f4f4f5;
+    --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px -12px rgb(0 0 0 / 0.6);
+  }
+}
+
+/* ---- Expose tokens to Tailwind utilities -------------------------------- */
+@theme inline {
+  --color-page: var(--page);
+  --color-page-edge: var(--page-edge);
+  --color-raised: var(--raised);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-ink-faint: var(--ink-faint);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-ring: var(--ring);
+
+  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-serif: 'Newsreader', ui-serif, Georgia, 'Times New Roman', serif;
+
+  --shadow-raised: var(--shadow);
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background:
+      radial-gradient(120% 60% at 50% 100%, var(--page-edge) 0%, transparent 70%),
+      var(--page);
+    background-attachment: fixed;
+    color: var(--ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 3px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.02ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.1ms !important;
+  }
+}
+
+::selection{
+  background-color: white;
+  color: blue;
+}

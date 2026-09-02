@@ -1,0 +1,8 @@
+<!-- 品牌標記原稿。網站用的是 src/icons/registry.tsx 裡的 inline 版本（fill 換成 currentColor），
+     這份留著當來源檔：要改形狀先改這裡，再把 path 同步過去。 -->
+<svg width="659" height="454" viewBox="0 0 659 454" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M530.177 231.364L402.338 453.317L658.015 453.317L530.177 231.364Z" fill="currentColor"/>
+  <path d="M530.177 221.953L658.015 0L402.338 0L530.177 221.953Z" fill="currentColor"/>
+  <path d="M165.484 221.022L165.484 453.317L0 453.317L0 0L165.484 221.022Z" fill="currentColor"/>
+  <path d="M181.17 221.022L181.17 453.317L346.654 453.317L346.654 0L181.17 221.022Z" fill="currentColor"/>
+</svg>
