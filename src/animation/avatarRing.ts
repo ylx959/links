@@ -10,15 +10,44 @@ import gsap from 'gsap'
  * 波的「行進感」全靠形狀本身輪替，不靠 `rotation` — 轉的話裡面的照片會跟著轉。
  */
 
-/** 繞一圈的秒數。慢一點才像在浮，不像在抖。 */
-const MORPH = 7
-/** 形變幅度（半徑的 %）。 */
-const AMP = 7
+/** 繞一圈的秒數。慢一點才像在浮，不像在抖；但太慢波峰就走不完一圈，看不出在動。 */
+const MORPH = 5
+/**
+ * 幾圈才回到同一個形狀。主波走 TURNS 圈的同時副波走 SUB 圈，兩者互質 —
+ * 要滿 TURNS 圈才重新對齊，中間每一圈的輪廓都不一樣，看不出「又轉回來了」。
+ * 兩個都是整數，所以週期結尾的相位剛好接回開頭，接縫仍然不存在。
+ */
+const TURNS = 3
+const SUB = 2
+/** 副波佔的比例。太小蓋不掉主波的對稱，太大就聽得出兩拍在打架。 */
+const SKEW = 0.42
+/**
+ * 形變幅度（半徑的 %）。每條邊的兩個半徑固定加總 100%，所以上限是 50 —
+ * 到那裡某個半徑會歸零、邊上出現尖角。這個值以「看得出在擺」為準往上抓。
+ */
+const AMP = 16
 /** hover 進場、滑開收回的時間。收得比進場快 — 滑開就該立刻收，拖著會黏。 */
 const ENTER = 0.9
 const SETTLE = 0.4
 
 const TAU = Math.PI * 2
+
+/**
+ * 四個自由度（上、下、左、右四條邊各自的分配）的相位與權重。
+ *
+ * 相位刻意不是均分的四分之一圈，權重也各不相同：之前四個值鎖在等距相位、等幅，
+ * 合起來就是一顆正橢圓在原地轉，兩軸完全鏡射。錯開之後凸起繞邊時有的地方鼓、
+ * 有的地方扁，軌跡才不對稱。
+ *
+ * weight ≤ 1 且兩條波的係數加總為 1，所以單邊擺幅永遠不超過 AMP，尖角的上限
+ * 條件不受影響。
+ */
+const LOBES = [
+  { weight: 1.0, phase: 0.0, sub: 0.0 }, // 上緣
+  { weight: 0.68, phase: 2.6, sub: 1.9 }, // 下緣
+  { weight: 0.86, phase: 1.15, sub: 3.7 }, // 左緣
+  { weight: 0.55, phase: 4.35, sub: 5.4 }, // 右緣
+]
 
 export type RingWobble = { show: () => void; hide: () => void }
 
@@ -41,12 +70,14 @@ export function createRingWobble(frame: HTMLElement): RingWobble {
 
   const write = () => {
     const k = wave.amp * AMP
-    // 每條邊的兩個半徑固定加總 100%，邊上才不會留下一段直線。剩下四個自由度
-    // 各差四分之一相位，凸起就會沿著邊繞。
-    const a = k * Math.sin(wave.angle)
-    const b = k * Math.sin(wave.angle + Math.PI)
-    const c = k * Math.sin(wave.angle + Math.PI / 2)
-    const d = k * Math.sin(wave.angle + Math.PI * 1.5)
+    const lobe = (l: (typeof LOBES)[number]) =>
+      k *
+      l.weight *
+      ((1 - SKEW) * Math.sin(wave.angle + l.phase) +
+        SKEW * Math.sin((wave.angle * SUB) / TURNS + l.sub))
+    // 每條邊的兩個半徑固定加總 100%，邊上才不會留下一段直線；四條邊之間則各走
+    // 各的，凸起沿著邊繞的同時形狀也一直在換。
+    const [a, b, c, d] = LOBES.map(lobe)
     const p = (v: number) => `${(50 + v).toFixed(2)}%`
     frame.style.borderRadius =
       `${p(a)} ${p(-a)} ${p(-b)} ${p(b)} / ${p(c)} ${p(d)} ${p(-d)} ${p(-c)}`
@@ -54,8 +85,8 @@ export function createRingWobble(frame: HTMLElement): RingWobble {
 
   // 等速轉，永遠不重設 angle：暫停再續播是從原地接下去，滑開又滑回來不會跳。
   const spin = gsap.to(wave, {
-    angle: `+=${TAU}`,
-    duration: MORPH,
+    angle: `+=${TAU * TURNS}`,
+    duration: MORPH * TURNS,
     ease: 'none',
     repeat: -1,
     paused: true,
