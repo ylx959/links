@@ -42,6 +42,23 @@ export interface Avatar {
   initials?: string
 }
 
+/** The screen that lives below the fold. Leave it out and the page is one screen. */
+export interface About {
+  /**
+   * Only ever read aloud. The visible heading is the handwritten SVG, which is
+   * marked decorative — keep this the same words so both audiences get one page.
+   */
+  heading: string
+  /**
+   * The paragraphs, in the order they play. Each one types itself out, waits to be
+   * read, then falls to the floor while the next types in over it — so the order is
+   * the script, and the last one is the closing line: it stays on screen.
+   *
+   * Where a paragraph breaks into lines is the layout's business, not this string's.
+   */
+  paragraphs: string[]
+}
+
 export interface Quote {
   text: string
   author?: string
@@ -71,4 +88,6 @@ export interface SiteConfig {
   /** Secondary links, rendered as an icon-only row above the copyright. */
   footerLinks: LinkItem[]
   footer?: string
+  /** Scroll past the links and this is what's there. */
+  about?: About
 }

@@ -16,6 +16,10 @@
     "noEmit": true,
     "jsx": "react-jsx",
 
+    /* Path alias. shadcn 的 registry 就是靠 "@/" 決定檔案落在哪。
+       TS 6 起 paths 直接相對於這個檔案，不用（也不該再用）baseUrl。 */
+    "paths": { "@/*": ["./src/*"] },
+
     /* Linting */
     "noUnusedLocals": true,
     "noUnusedParameters": true,

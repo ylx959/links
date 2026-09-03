@@ -13,6 +13,9 @@
   --ink-faint: #a1a1aa;
   --line: #e6e6e4;
   --ring: #18181b;
+  /* 全站唯一的彩度，只出現在兩個地方：手寫落款，和第一屏底部那顆等著被按的點。
+     它們是同一件事的兩端，所以共用同一個變數 —— 改這裡兩邊一起動。 */
+  --accent: #0220f6;
   --shadow: 0 1px 2px rgb(24 24 27 / 0.04), 0 8px 24px -12px rgb(24 24 27 / 0.12);
 }
 
@@ -24,6 +27,7 @@
   --color-ink-muted: var(--ink-muted);
   --color-ink-faint: var(--ink-faint);
   --color-line: var(--line);
+  --color-accent: var(--accent);
 
   --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-serif: 'Newsreader', ui-serif, Georgia, 'Times New Roman', serif;
@@ -50,6 +54,51 @@
   :focus-visible {
     outline: 2px solid var(--ring);
     outline-offset: 3px;
+  }
+}
+
+/* ---- About：手寫落款 -----------------------------------------------------
+   about-signature.svg 是原封不動內嵌進來的，這裡只接管兩件檔案不該管的事：
+   尺寸交給版面，顏色交給 token。粗細與筆帽留在 SVG 裡，換成 Figma 匯出的檔案
+   時，你在 Figma 調的筆畫粗細會被原樣尊重。
+
+   （presentation attribute 的優先權低於 CSS 規則，所以這裡的 stroke 蓋得過
+   檔案裡的 stroke="…"，不需要 !important。）
+   -------------------------------------------------------------------------- */
+.signature svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  /* 筆畫的圓筆帽會凸出 viewBox 一點點，切掉的話起筆收筆會是平的。 */
+  overflow: visible;
+}
+
+.signature path {
+  stroke: var(--accent);
+}
+
+/* ---- 第一屏底部的那顆點 ---------------------------------------------------
+   幅度小到接近看不出來 —— 它的工作是讓餘光察覺「那裡有東西活著」，
+   不是把人的視線搶過去。上面的 prefers-reduced-motion 規則會把它停掉。
+   -------------------------------------------------------------------------- */
+@keyframes cue-breathe {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.scroll-cue {
+  animation: cue-breathe 3.2s ease-in-out infinite;
+}
+
+/* 點下那顆點是要「捲下去」，不是「跳過去」—— 中間那段路本身就是彩蛋的一部分。 */
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
   }
 }
 

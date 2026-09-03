@@ -1,6 +1,7 @@
 import type { SiteConfig } from './types'
 import { profile } from './profile'
 import { groups, footerLinks } from './links'
+import { about } from './about'
 
 export const site: SiteConfig = {
   meta: {
@@ -12,4 +13,5 @@ export const site: SiteConfig = {
   groups,
   footerLinks,
   footer: `© ${new Date().getFullYear()} ${profile.name}`,
+  about,
 }
