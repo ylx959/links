@@ -136,8 +136,8 @@ className="relative mx-auto flex min-h-dvh max-w-[28rem] flex-col justify-center
 Change the main stack and footer classes in the same file:
 
 ```tsx
-<div className="flex flex-col gap-5 sm:gap-9">
-<footer className="mt-6 flex flex-col items-center gap-1 sm:mt-12 sm:gap-3">
+<div className="flex flex-col gap-4 sm:gap-9">
+<footer className="mt-3 flex flex-col items-center gap-1 sm:mt-12 sm:gap-3">
 ```
 
 Wrap the main stack and footer together so the mobile content moves down 56px without moving the sibling scroll cue or increasing the section height:
@@ -169,7 +169,7 @@ Use responsive profile typography and spacing:
 <p className="mt-1 text-[12px] tracking-tight text-ink-muted sm:text-[13px]">
 ```
 
-Change the link anchor in `src/components/LinkButton.tsx` to `h-11 sm:h-12`. Change the blockquote in `src/components/QuoteBlock.tsx` to `text-[14px] ... sm:text-[15px]`. Do not shrink either icon-link targets or the scroll-cue target.
+Change the link anchor in `src/components/LinkButton.tsx` to `h-11 sm:h-12`, and center its 40px puck with `top-0.5 sm:top-[3.75px]`. Change the blockquote in `src/components/QuoteBlock.tsx` to `text-[14px] ... sm:text-[15px]`. Do not shrink either icon-link targets or the scroll-cue target.
 
 - [ ] **Step 4: Run static verification**
 

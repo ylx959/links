@@ -24,10 +24,10 @@ Mobile values will be:
 
 - reduce the avatar's visible diameter from 108px to approximately 88px while leaving its crop and desktop hover behavior intact;
 - reduce the first-screen top padding from 192px to 24px;
-- reduce the main content stack gap from 36px to 20px;
+- reduce the main content stack gap from 36px to 16px;
 - reduce the profile name's top margin from 24px to 16px;
 - reduce link-button height from 48px to 44px;
-- reduce the footer's top margin from 48px to 24px and its internal gap from 12px to 4px;
+- reduce the footer's top margin from 48px to 12px and its internal gap from 12px to 4px;
 - retain readable text sizes, allowing only the secondary headline and quote to decrease by 1px;
 - preserve the icon links' existing touch targets and the scroll cue's 44px touch target.
 - translate the complete content group (profile through copyright) down by 56px without moving the scroll cue or changing document height.

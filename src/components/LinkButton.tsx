@@ -46,7 +46,7 @@ export function LinkButton({ item }: { item: LinkItem }) {
       {/* The puck. Rest: flush right, showing the brand mark. Hover: flush left, showing the arrow.
           外框是 0.25px 描邊，吃掉高寬各 0.5px：內距 3.75px 才置中，位移距離也跟著扣成 puck 40px + 兩側 3.75px。 */}
       <span
-        className={`absolute top-[3.75px] right-[3.75px] flex size-10 items-center justify-center rounded-full bg-ink text-page transition-transform group-hover:-translate-x-[calc(100cqw-47.5px)] ${TRAVEL}`}
+        className={`absolute top-0.5 right-[3.75px] flex size-10 items-center justify-center rounded-full bg-ink text-page transition-transform group-hover:-translate-x-[calc(100cqw-47.5px)] sm:top-[3.75px] ${TRAVEL}`}
       >
         <Icon className={`absolute size-4 transition-opacity group-hover:opacity-0 ${SWAP}`} />
         <svg

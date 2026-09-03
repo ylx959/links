@@ -3,15 +3,9 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App'
 import { site } from './data'
-import { resetInitialScroll } from './initialScroll'
+import { resetBrowserInitialScroll } from './initialScroll'
 
-resetInitialScroll({
-  history: window.history,
-  location: window.location,
-  scrollTo: window.scrollTo.bind(window),
-  reload: () => window.location.reload(),
-  onPageShow: (listener) => window.addEventListener('pageshow', listener, { once: true }),
-})
+resetBrowserInitialScroll(window)
 
 document.title = site.meta.title
 document

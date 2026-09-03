@@ -33,3 +33,14 @@ export function resetInitialScroll({
     scrollToTop()
   })
 }
+
+/** Wire the reset behavior to a real browser window and keep pageshow active for BFCache restores. */
+export function resetBrowserInitialScroll(browserWindow: Window): void {
+  resetInitialScroll({
+    history: browserWindow.history,
+    location: browserWindow.location,
+    scrollTo: browserWindow.scrollTo.bind(browserWindow),
+    reload: () => browserWindow.location.reload(),
+    onPageShow: (listener) => browserWindow.addEventListener('pageshow', listener),
+  })
+}

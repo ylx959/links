@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
 
-import { resetInitialScroll } from '../src/initialScroll.ts'
+import { resetBrowserInitialScroll, resetInitialScroll } from '../src/initialScroll.ts'
 
 test('initial load clears the fragment and starts at the top', () => {
   const replaced = []
@@ -68,4 +68,44 @@ test('a page restored from the back-forward cache requests a clean reload', () =
 
   assert.deepEqual(reloads, ['reload'])
   assert.deepEqual(scrolled, [[0, 0]])
+})
+
+test('browser wiring keeps listening after the initial pageshow', () => {
+  const listeners = []
+  const scrolled = []
+  const reloads = []
+  const browserWindow = {
+    history: {
+      scrollRestoration: 'auto',
+      replaceState: () => {},
+    },
+    location: {
+      pathname: '/links',
+      search: '',
+      hash: '',
+      reload: () => reloads.push('reload'),
+    },
+    scrollTo: (...args) => scrolled.push(args),
+    addEventListener: (type, listener, options) => {
+      listeners.push({ type, listener, once: options?.once === true })
+    },
+  }
+
+  const dispatchPageShow = (persisted) => {
+    for (const registration of [...listeners]) {
+      if (registration.type !== 'pageshow') continue
+      registration.listener({ persisted })
+      if (registration.once) listeners.splice(listeners.indexOf(registration), 1)
+    }
+  }
+
+  resetBrowserInitialScroll(browserWindow)
+  dispatchPageShow(false)
+  dispatchPageShow(true)
+
+  assert.deepEqual(scrolled, [
+    [0, 0],
+    [0, 0],
+  ])
+  assert.deepEqual(reloads, ['reload'])
 })
