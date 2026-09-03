@@ -6,8 +6,8 @@ import Matter from 'matter-js'
  * 時間軸決定何時投放與重置單字。世界沒有地板；單字越過底部界線後會從物理世界移除。
  * 左右牆避免旋轉中的單字撐出橫向捲軸。
  *
- * 座標系是 [data-stage]（它是 position: relative）。單字一旦開始掉就變成
- * absolute，於是 offsetParent 正好是 stage，物理算出來的 x/y 可以直接寫成 left/top。
+ * 座標系是 [data-stage]（它是 position: relative）。單字一旦開始掉就變成 absolute
+ * 並釘死在原點，位置與角度全部由 transform 表達 —— 於是每幀只重繪、不重排。
  */
 
 /** 固定步長保持不同幀率下的物理結果一致。 */
@@ -37,6 +37,17 @@ export function createWordPhysics(stage: HTMLElement) {
   let walls: Matter.Body[] = []
   let dropped: { el: HTMLElement; body: Matter.Body }[] = []
   const activeElements = new Set<HTMLElement>()
+  /**
+   * 已經量好、建好 body，但還沒放手的字。
+   *
+   * 量位置要 getBoundingClientRect，那是一次強制同步回流。放手那一幀是 GSAP 的
+   * tl.call() 叫起來的 —— 筆畫和透明度剛寫完，文件是髒的，這時候一讀就得等整頁
+   * 重算，而一整段的字是同時放手的。那一幀於是被撐爆，看起來就是散開的瞬間打嗝。
+   *
+   * 所以量測與建 body 全部提前到版面靜止時做完，放手那一幀只剩「把現成的 body
+   * 丟進世界」—— 沒有讀，就沒有回流。
+   */
+  const pending = new Map<HTMLElement, Matter.Body>()
   let frame = 0
   /** 越過這條線（相對 stage）就算掉出畫面了。 */
   let cullY = Infinity
@@ -60,13 +71,19 @@ export function createWordPhysics(stage: HTMLElement) {
     ]
     Matter.Composite.add(engine.world, walls)
     cullY = cull
+    // 預量的字位是照這組邊界所屬的那份版面量的；邊界重量代表版面變了，舊的一律作廢。
+    pending.clear()
   }
 
   const sync = () => {
     dropped.forEach(({ el, body }) => {
-      el.style.left = `${body.position.x}px`
-      el.style.top = `${body.position.y}px`
-      el.style.transform = `translate(-50%, -50%) rotate(${body.angle}rad)`
+      // 只寫 transform。改 left/top 每次都是一次重排，一段四五十個字、每幀重排一次，
+      // 掉落全程都在跟版面引擎拔河；transform 只走合成與繪製。
+      // 字釘在 stage 原點（left/top 都是 0），位移由前面那個 translate 補上，
+      // 後面的 -50% 把錨點挪到方塊中心 —— 那才是 body.position 的意思。
+      el.style.transform =
+        `translate(${body.position.x}px, ${body.position.y}px)` +
+        ` translate(-50%, -50%) rotate(${body.angle}rad)`
     })
   }
 
@@ -90,32 +107,53 @@ export function createWordPhysics(stage: HTMLElement) {
     frame = dropped.length ? requestAnimationFrame(tick) : 0
   }
 
+  /** 以 stage 左上為原點，把一個字量成一塊矩形剛體。 */
+  const makeBody = (el: HTMLElement, origin: DOMRect) => {
+    const r = el.getBoundingClientRect()
+    const body = Matter.Bodies.rectangle(
+      r.left - origin.left + r.width / 2,
+      r.top - origin.top + r.height / 2,
+      r.width,
+      r.height,
+      { restitution: 0.8, frictionAir: 0.01, friction: 0.2 },
+    )
+    Matter.Body.setVelocity(body, { x: (Math.random() - 0.5) * NUDGE_X, y: 0 })
+    Matter.Body.setAngularVelocity(body, (Math.random() - 0.5) * NUDGE_SPIN)
+    return body
+  }
+
+  /**
+   * 先量好、先建好，但先不放進世界。
+   *
+   * 挑版面靜止、沒有動畫在跑的時候呼叫（歸零之後），把放手那一幀的工作預先清空。
+   * 已經量過或已經在掉的字會被跳過，所以重複呼叫是免費的 —— 沒有東西要量時，
+   * 連 stage 的那一次 getBoundingClientRect 都不會發生。
+   */
+  const prime = (words: HTMLElement[]) => {
+    const batch = words.filter((el) => !activeElements.has(el) && !pending.has(el))
+    if (!batch.length) return
+    const origin = stage.getBoundingClientRect()
+    batch.forEach((el) => pending.set(el, makeBody(el, origin)))
+  }
+
   /** 把這一批單字丟進世界裡開始掉。 */
   const drop = (words: HTMLElement[]) => {
     const batch = words.filter((el) => !activeElements.has(el))
     if (!batch.length) return
 
-    const origin = stage.getBoundingClientRect()
-    // 先量完整批再脫離文件流：一改成 absolute，同一行後面的字就會往前遞補，
-    // 那時候量到的就不是它原本待的位置了。
-    const bodies = batch.map((el) => {
-      const r = el.getBoundingClientRect()
-      const body = Matter.Bodies.rectangle(
-        r.left - origin.left + r.width / 2,
-        r.top - origin.top + r.height / 2,
-        r.width,
-        r.height,
-        { restitution: 0.8, frictionAir: 0.01, friction: 0.2 },
-      )
-      Matter.Body.setVelocity(body, { x: (Math.random() - 0.5) * NUDGE_X, y: 0 })
-      Matter.Body.setAngularVelocity(body, (Math.random() - 0.5) * NUDGE_SPIN)
-      return body
-    })
+    // 正常情況下 prime 早就跑完了，這裡是不做事、也不讀 DOM 的 no-op。
+    // 只有時間軸被快轉、來不及預量時，才真的在這一幀補量。
+    prime(batch)
 
+    const bodies = batch.map((el) => pending.get(el)!)
     batch.forEach((el, i) => {
       el.style.position = 'absolute'
+      // 位置整個交給 transform，所以錨點固定在 stage 原點。
+      el.style.left = '0'
+      el.style.top = '0'
       el.style.margin = '0'
       activeElements.add(el)
+      pending.delete(el)
       dropped.push({ el, body: bodies[i] })
     })
     Matter.Composite.add(engine.world, bodies)
@@ -151,6 +189,8 @@ export function createWordPhysics(stage: HTMLElement) {
     Matter.Composite.clear(engine.world, true)
     dropped = []
     activeElements.clear()
+    // 字剛被放回文件流，還沒重新量過 —— 預量的那批留著只會是舊的。
+    pending.clear()
   }
 
   const destroy = () => {
@@ -159,5 +199,5 @@ export function createWordPhysics(stage: HTMLElement) {
     Matter.Engine.clear(engine)
   }
 
-  return { setBounds, drop, settle, reset, destroy }
+  return { setBounds, prime, drop, settle, reset, destroy }
 }

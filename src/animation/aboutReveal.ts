@@ -48,8 +48,8 @@ const FADE_GAP = 0.4
  *
  * 依字數延長每段的閱讀時間。
  */
-const HOLD_BASE = 1
-const HOLD_PER_CHAR = 0.02
+const HOLD_BASE = 0.8
+const HOLD_PER_CHAR = 0.01
 
 /**
  * 過了區塊底緣再多遠就算掉出去了。
@@ -199,6 +199,9 @@ export function playAboutReveal(section: HTMLElement | null): (() => void) | und
         { x: 0, y: 0, rotation: 0, opacity: 1 },
       )
       gsap.set(paragraphs, { autoAlpha: 0 })
+      // 字都回到版面上了，而且到放手為止都不會再動 —— 趁這個空檔把下一輪要掉的
+      // body 全部量好建好。放手那一幀就不必再讀 DOM，也就沒有那次強制回流。
+      physics.prime(wordGroups.flat())
     }
 
     const buildMaster = () => {
