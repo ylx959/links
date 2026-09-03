@@ -1,8 +1,11 @@
+type PageShowState = Pick<PageTransitionEvent, 'persisted'>
+
 type InitialScrollEnvironment = {
   history: Pick<History, 'replaceState' | 'scrollRestoration'>
   location: Pick<Location, 'hash' | 'pathname' | 'search'>
   scrollTo: (x: number, y: number) => void
-  onPageShow: (listener: () => void) => void
+  reload: () => void
+  onPageShow: (listener: (event: PageShowState) => void) => void
 }
 
 /** Start every page load at the Linktree screen instead of restoring About. */
@@ -10,6 +13,7 @@ export function resetInitialScroll({
   history,
   location,
   scrollTo,
+  reload,
   onPageShow,
 }: InitialScrollEnvironment): void {
   history.scrollRestoration = 'manual'
@@ -20,5 +24,12 @@ export function resetInitialScroll({
 
   const scrollToTop = () => scrollTo(0, 0)
   scrollToTop()
-  onPageShow(scrollToTop)
+  onPageShow((event) => {
+    if (event.persisted) {
+      reload()
+      return
+    }
+
+    scrollToTop()
+  })
 }

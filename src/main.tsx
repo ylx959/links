@@ -9,6 +9,7 @@ resetInitialScroll({
   history: window.history,
   location: window.location,
   scrollTo: window.scrollTo.bind(window),
+  reload: () => window.location.reload(),
   onPageShow: (listener) => window.addEventListener('pageshow', listener, { once: true }),
 })
 

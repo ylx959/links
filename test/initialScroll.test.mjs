@@ -6,6 +6,7 @@ import { resetInitialScroll } from '../src/initialScroll.ts'
 test('initial load clears the fragment and starts at the top', () => {
   const replaced = []
   const scrolled = []
+  const reloads = []
   let onPageShow
   const history = {
     scrollRestoration: 'auto',
@@ -21,6 +22,7 @@ test('initial load clears the fragment and starts at the top', () => {
     history,
     location,
     scrollTo: (...args) => scrolled.push(args),
+    reload: () => reloads.push('reload'),
     onPageShow: (listener) => {
       onPageShow = listener
     },
@@ -31,9 +33,39 @@ test('initial load clears the fragment and starts at the top', () => {
   assert.deepEqual(scrolled, [[0, 0]])
 
   assert.equal(typeof onPageShow, 'function')
-  onPageShow()
+  onPageShow({ persisted: false })
   assert.deepEqual(scrolled, [
     [0, 0],
     [0, 0],
   ])
+  assert.deepEqual(reloads, [])
+})
+
+test('a page restored from the back-forward cache requests a clean reload', () => {
+  const scrolled = []
+  const reloads = []
+  let onPageShow
+
+  resetInitialScroll({
+    history: {
+      scrollRestoration: 'auto',
+      replaceState: () => {},
+    },
+    location: {
+      pathname: '/links',
+      search: '',
+      hash: '',
+    },
+    scrollTo: (...args) => scrolled.push(args),
+    reload: () => reloads.push('reload'),
+    onPageShow: (listener) => {
+      onPageShow = listener
+    },
+  })
+
+  assert.equal(typeof onPageShow, 'function')
+  onPageShow({ persisted: true })
+
+  assert.deepEqual(reloads, ['reload'])
+  assert.deepEqual(scrolled, [[0, 0]])
 })
