@@ -140,6 +140,14 @@ Change the main stack and footer classes in the same file:
 <footer className="mt-6 flex flex-col items-center gap-1 sm:mt-12 sm:gap-3">
 ```
 
+Wrap the main stack and footer together so the mobile content moves down 56px without moving the sibling scroll cue or increasing the section height:
+
+```tsx
+<div className="translate-y-14 sm:translate-y-0">
+  {/* main stack and footer */}
+</div>
+```
+
 Update the adjacent explanatory comment to document both mobile density and the cue safe area.
 
 - [ ] **Step 3: Compact the mobile components without changing desktop**

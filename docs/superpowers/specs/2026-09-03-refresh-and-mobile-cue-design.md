@@ -30,6 +30,7 @@ Mobile values will be:
 - reduce the footer's top margin from 48px to 24px and its internal gap from 12px to 4px;
 - retain readable text sizes, allowing only the secondary headline and quote to decrease by 1px;
 - preserve the icon links' existing touch targets and the scroll cue's 44px touch target.
+- translate the complete content group (profile through copyright) down by 56px without moving the scroll cue or changing document height.
 
 The first-screen section will also reserve a dedicated mobile-only bottom safe area for the absolutely positioned scroll cue. The footer stays in normal flow above that reserved space, while the cue remains visually anchored near the bottom of the first screen.
 

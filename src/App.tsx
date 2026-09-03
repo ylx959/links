@@ -25,16 +25,19 @@ export default function App() {
         // sm 以上恢復原本的 pt-48 / pb-8 與寬鬆間距。
         className="relative mx-auto flex min-h-dvh max-w-[28rem] flex-col justify-center px-6 pt-6 pb-20 sm:pt-48 sm:pb-8"
       >
-        <div className="flex flex-col gap-5 sm:gap-9">
-          <ProfileHeader {...profile} />
-          <LinkList groups={groups} />
-          {profile.quote && <QuoteBlock {...profile.quote} />}
-        </div>
+        {/* 手機版整組下移，但藍點是外面的 sibling，所以仍固定在原本的底部位置。 */}
+        <div className="translate-y-14 sm:translate-y-0">
+          <div className="flex flex-col gap-5 sm:gap-9">
+            <ProfileHeader {...profile} />
+            <LinkList groups={groups} />
+            {profile.quote && <QuoteBlock {...profile.quote} />}
+          </div>
 
-        <footer className="mt-6 flex flex-col items-center gap-1 sm:mt-12 sm:gap-3">
-          <IconLinkRow items={footerLinks} />
-          {footer && <p className="text-[12px] text-ink-faint">{footer}</p>}
-        </footer>
+          <footer className="mt-6 flex flex-col items-center gap-1 sm:mt-12 sm:gap-3">
+            <IconLinkRow items={footerLinks} />
+            {footer && <p className="text-[12px] text-ink-faint">{footer}</p>}
+          </footer>
+        </div>
 
         {about && <ScrollCue targetId="about" label={about.heading} />}
       </section>
