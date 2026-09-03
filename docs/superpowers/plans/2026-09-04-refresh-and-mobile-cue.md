@@ -109,49 +109,81 @@ git add src/initialScroll.ts src/main.tsx test/initialScroll.test.mjs
 git commit -m "fix: restart page after browser restoration"
 ```
 
-### Task 2: Reserve the mobile scroll-cue safe area
+### Task 2: Compact the mobile first screen and reserve the cue safe area
 
 **Files:**
 - Modify: `src/App.tsx`
+- Modify: `src/components/ProfileHeader.tsx`
+- Modify: `src/components/LinkButton.tsx`
+- Modify: `src/components/QuoteBlock.tsx`
 
 **Interfaces:**
 - Consumes: the existing absolute `ScrollCue` with `bottom-4` and a `size-11` (44px) anchor.
-- Produces: a first-screen section with an 80px mobile bottom safe area and the existing 32px bottom padding from the `sm` breakpoint upward.
+- Produces: a compact mobile composition that fits at 390 × 664, plus an 80px bottom safe area; all existing sizes return at the `sm` breakpoint.
 
 - [ ] **Step 1: Record the layout invariant before changing styles**
 
 The cue occupies the vertical interval from 60px above the viewport bottom to 16px above it. The footer must end at least 16px above that interval, so mobile content needs at least `60px + 16px = 76px` of reserved bottom space. Tailwind `pb-20` supplies 80px.
 
-- [ ] **Step 2: Add responsive safe-area padding**
+- [ ] **Step 2: Add the responsive first-screen spacing**
 
 Change the first-screen section class in `src/App.tsx`:
 
 ```tsx
-className="relative mx-auto flex min-h-dvh max-w-[28rem] flex-col justify-center px-6 pt-48 pb-20 sm:pb-8"
+className="relative mx-auto flex min-h-dvh max-w-[28rem] flex-col justify-center px-6 pt-6 pb-20 sm:pt-48 sm:pb-8"
 ```
 
-Update the adjacent explanatory comment so it no longer claims the bottom padding is always `pb-8`.
+Change the main stack and footer classes in the same file:
 
-- [ ] **Step 3: Run static verification**
+```tsx
+<div className="flex flex-col gap-5 sm:gap-9">
+<footer className="mt-6 flex flex-col items-center gap-1 sm:mt-12 sm:gap-3">
+```
+
+Update the adjacent explanatory comment to document both mobile density and the cue safe area.
+
+- [ ] **Step 3: Compact the mobile components without changing desktop**
+
+Wrap `Avatar` in `src/components/ProfileHeader.tsx` with an 88px mobile box and a proportional visual scale; restore both to 108px/100% at `sm`:
+
+```tsx
+<div className="flex size-[88px] items-center justify-center sm:size-[108px]">
+  <div className="scale-[0.815] sm:scale-100">
+    <Avatar {...avatar} initials={avatar.initials ?? initialsFrom(name)} />
+  </div>
+</div>
+```
+
+Use responsive profile typography and spacing:
+
+```tsx
+<h1 className="mt-4 text-[18px] font-semibold tracking-tight sm:mt-6">
+<p className="mt-1 text-[12px] tracking-tight text-ink-muted sm:text-[13px]">
+```
+
+Change the link anchor in `src/components/LinkButton.tsx` to `h-11 sm:h-12`. Change the blockquote in `src/components/QuoteBlock.tsx` to `text-[14px] ... sm:text-[15px]`. Do not shrink either icon-link targets or the scroll-cue target.
+
+- [ ] **Step 4: Run static verification**
 
 Run: `npm run lint && npm run build`
 
 Expected: both commands exit with code 0.
 
-- [ ] **Step 4: Inspect the narrow mobile layout**
+- [ ] **Step 5: Inspect the mobile and desktop layouts**
 
-Start the app with `npm run dev`, open it at a 390 × 844 viewport, and confirm:
+Start the app with `npm run dev`; inspect it at 390 × 664, 390 × 844, and 1280 × 800. Confirm:
 
+- all links, the quote, icon row, copyright, and cue are visible without scrolling at both mobile heights;
 - the full 44px cue target remains 16px above the viewport bottom;
 - the copyright line does not intersect the cue target;
-- the first-screen content remains centered and readable;
-- the desktop layout at 1280 × 800 retains its previous bottom padding.
+- the mobile content remains readable and the icon/cue targets do not shrink;
+- the desktop layout retains its prior component sizes and spacing.
 
-- [ ] **Step 5: Commit the mobile layout change**
+- [ ] **Step 6: Commit the mobile layout change**
 
 ```bash
-git add src/App.tsx
-git commit -m "fix: reserve mobile space for scroll cue"
+git add src/App.tsx src/components/ProfileHeader.tsx src/components/LinkButton.tsx src/components/QuoteBlock.tsx
+git commit -m "fix: compact mobile first screen"
 ```
 
 ### Task 3: Run release-level verification
