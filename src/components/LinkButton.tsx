@@ -28,7 +28,7 @@ export function LinkButton({ item }: { item: LinkItem }) {
     <a
       href={item.href}
       {...newTabProps(item)}
-      className="group @container relative flex h-12 items-center rounded-full border-[0.05px] border-ink/8 bg-black/2.5 transition-transform duration-200 ease-out active:scale-[0.995]"
+      className="group @container relative flex h-11 items-center rounded-full border-[0.05px] border-ink/8 bg-black/2.5 transition-transform duration-200 ease-out active:scale-[0.995] sm:h-12"
     >
       {/* 內距放在這裡而不是 <a>：container-type 以內容框計算 cqw，
           <a> 有內距的話 100cqw 就不等於按鈕寬度了。 */}

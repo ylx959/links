@@ -13,9 +13,13 @@ function initialsFrom(name: string): string {
 export function ProfileHeader({ name, headline, avatar }: Profile) {
   return (
     <header className="flex flex-col items-center text-center">
-      <Avatar {...avatar} initials={avatar.initials ?? initialsFrom(name)} />
-      <h1 className="mt-6 text-[18px] font-semibold tracking-tight">{name}</h1>
-      <p className="mt-1 text-[13px] tracking-tight text-ink-muted">{headline}</p>
+      <div className="flex size-[88px] items-center justify-center sm:size-[108px]">
+        <div className="scale-[0.815] sm:scale-100">
+          <Avatar {...avatar} initials={avatar.initials ?? initialsFrom(name)} />
+        </div>
+      </div>
+      <h1 className="mt-4 text-[18px] font-semibold tracking-tight sm:mt-6">{name}</h1>
+      <p className="mt-1 text-[12px] tracking-tight text-ink-muted sm:text-[13px]">{headline}</p>
     </header>
   )
 }
