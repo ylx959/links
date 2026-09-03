@@ -2,7 +2,7 @@ import gsap from 'gsap'
 
 const entrance = {
   /** Start offset in px. Negative = starts above and drops into place. */
-  y: -16,
+  y: -25,
   duration: 1.5,
   /** Lets the fonts land before anything moves. */
   delay: 0.15,
@@ -12,28 +12,44 @@ const entrance = {
 
 /**
  * Fade + downward slide for the page as a single block — no stagger, everything moves together.
- * Skipped entirely under `prefers-reduced-motion`.
+ * Skipped under `prefers-reduced-motion`. If the page loads in a background tab,
+ * playback waits until the tab becomes visible so the entrance still starts at frame one.
  * Runs inside a `useGSAP()` context, which reverts the matchMedia on unmount.
  */
-export function playEntrance(target: Element | null): void {
+export function playEntrance(target: Element | null): (() => void) | undefined {
   if (!target) return
 
-  // A background tab throttles requestAnimationFrame, so the tween would sit at
-  // autoAlpha 0 and the page would look empty until the tab is focused.
-  // Nothing to reveal if nobody is looking — show the content and skip the intro.
-  if (document.visibilityState === 'hidden') return
+  let mm: ReturnType<typeof gsap.matchMedia> | null = null
 
-  const mm = gsap.matchMedia()
-
-  mm.add('(prefers-reduced-motion: no-preference)', () => {
-    gsap.from(target, {
-      autoAlpha: 0,
-      y: entrance.y,
-      duration: entrance.duration,
-      ease: entrance.ease,
-      delay: entrance.delay,
-      // Hand the styles back to CSS so nothing inline lingers on the container.
-      clearProps: 'transform,opacity,visibility',
+  const start = () => {
+    mm = gsap.matchMedia()
+    mm.add('(prefers-reduced-motion: no-preference)', () => {
+      gsap.from(target, {
+        autoAlpha: 0,
+        y: entrance.y,
+        duration: entrance.duration,
+        ease: entrance.ease,
+        delay: entrance.delay,
+        // Hand the styles back to CSS so nothing inline lingers on the container.
+        clearProps: 'transform,opacity,visibility',
+      })
     })
-  })
+  }
+
+  const onVisible = () => {
+    if (document.visibilityState === 'hidden') return
+    document.removeEventListener('visibilitychange', onVisible)
+    start()
+  }
+
+  if (document.visibilityState === 'hidden') {
+    document.addEventListener('visibilitychange', onVisible)
+  } else {
+    start()
+  }
+
+  return () => {
+    document.removeEventListener('visibilitychange', onVisible)
+    mm?.revert()
+  }
 }

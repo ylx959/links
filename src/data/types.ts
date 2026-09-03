@@ -50,9 +50,8 @@ export interface About {
    */
   heading: string
   /**
-   * The paragraphs, in the order they play. Each one types itself out, waits to be
-   * read, then falls to the floor while the next types in over it — so the order is
-   * the script, and the last one is the closing line: it stays on screen.
+   * The paragraphs in playback order. Each fades in, waits to be read, then falls
+   * out of view. After the final paragraph, the heading erases and the signature draws.
    *
    * Where a paragraph breaks into lines is the layout's business, not this string's.
    */
