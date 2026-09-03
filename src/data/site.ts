@@ -6,7 +6,7 @@ export const site: SiteConfig = {
   meta: {
     title: 'YLX | LinkTree',
     description: profile.headline,
-    url: 'https://example.com',
+    url: 'https://linktree.ylx-studio.com/',
   },
   profile,
   groups,

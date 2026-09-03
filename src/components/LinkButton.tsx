@@ -28,14 +28,14 @@ export function LinkButton({ item }: { item: LinkItem }) {
     <a
       href={item.href}
       {...newTabProps(item)}
-      className="group @container relative flex h-12 items-center rounded-full border-[0.25px] border-ink/30 bg-black/4 transition-transform duration-200 ease-out active:scale-[0.995]"
+      className="group @container relative flex h-12 items-center rounded-full border-[0.05px] border-ink/8 bg-black/2.5 transition-transform duration-200 ease-out active:scale-[0.995]"
     >
       {/* 內距放在這裡而不是 <a>：container-type 以內容框計算 cqw，
           <a> 有內距的話 100cqw 就不等於按鈕寬度了。 */}
       <span
         className={`relative z-10 min-w-0 flex-1 pr-14 pl-6 transition-transform group-hover:translate-x-8 ${TRAVEL}`}
       >
-        <span className="block truncate font-serif text-[15px] leading-snug">{item.label}</span>
+        <span className="block truncate font-garamond text-[16px] leading-snug">{item.label}</span>
         {item.description && (
           <span className="mt-0.5 block truncate text-[12px] leading-snug opacity-70">
             {item.description}

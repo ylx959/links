@@ -27,6 +27,8 @@
 
   --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-serif: 'Newsreader', ui-serif, Georgia, 'Times New Roman', serif;
+  /* 舊風格 Garamond：x-height 較小、襯線纖細，只用在按鈕標題那種要有書卷味的地方。 */
+  --font-garamond: 'EB Garamond', ui-serif, Georgia, 'Times New Roman', serif;
 
   --shadow-raised: var(--shadow);
 }
@@ -62,5 +64,6 @@
 }
 
 ::selection {
-  color: blue;
+  background:rgb(232, 232, 232);
+  color: rgb(22, 53, 84);
 }
