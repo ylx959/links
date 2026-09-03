@@ -21,10 +21,9 @@ export default function App() {
     <main>
       <section
         ref={hub}
-        // 整塊的垂直位置。justify-center 會把剩餘空間平分到上下，所以單獨加大 pt
-        // 只會下移一半。要精準下移 N px：pt 加 N、pb 減 N（總和不變 = 剩餘空間不變）。
-        // 一格 = 4px，所以 pt-40→pt-48 / pb-16→pb-8 就是往下 32px。
-        className="relative mx-auto flex min-h-dvh max-w-[28rem] flex-col justify-center px-6 pt-48 pb-8"
+        // 手機版的 pb-20 替底部藍點保留完整 44px 點擊區和間距，避免壓到 footer。
+        // sm 以上維持原本的 pb-8；justify-center 會把剩餘空間平分到上下。
+        className="relative mx-auto flex min-h-dvh max-w-[28rem] flex-col justify-center px-6 pt-48 pb-20 sm:pb-8"
       >
         <div className="flex flex-col gap-9">
           <ProfileHeader {...profile} />
