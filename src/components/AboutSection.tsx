@@ -6,16 +6,7 @@ import { playAboutReveal } from '../animation/aboutReveal'
 import signatureMarkup from '../assets/about-signature.svg?raw'
 import signOffMarkup from '../assets/signature.svg?raw'
 
-/**
- * 版面比例照設計稿量出來的，稿子 = 一整個螢幕，所以所有尺寸都是 vw／dvh：
- *
- *   落款   left 10.3vw、width 62.5vw、top 13dvh
- *   段落   width 42.5vw、右緣離邊 20.5vw（於是左緣落在 37vw）、與落款距 14.5dvh
- *   內文   font-size 2vw ← 跟著寬度縮放，所以不管螢幕多大都斷成一樣的行數
- *
- * 段落跟在固定長寬比的 SVG 後方，避免扁螢幕下重疊。vw 字級維持斷行比例，clamp 限制
- * 極端尺寸；sm 以下改為單欄。overflow-hidden 裁掉落出區塊的絕對定位單字。
- */
+/** 桌面版以 vw/dvh 維持設計稿比例與斷行，sm 以下改為單欄。 */
 export function AboutSection({ heading, paragraphs }: About) {
   const root = useRef<HTMLElement>(null)
 

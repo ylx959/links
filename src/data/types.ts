@@ -26,11 +26,7 @@ export interface LinkGroup {
 
 export interface Avatar {
   src: string
-  /**
-   * Scale applied inside the circle, 1 = untouched. Raise it when the source
-   * carries wide margins or thin linework: cropping in fills the frame and
-   * thickens the strokes, which is what keeps line art legible at this size.
-   */
+  /** Scale inside the circle; increase it to crop margins or strengthen thin linework. */
   zoom?: number
   /** Horizontal nudge inside the circle, in % of the frame. Positive moves the image right. */
   offsetX?: number
@@ -44,17 +40,9 @@ export interface Avatar {
 
 /** The screen that lives below the fold. Leave it out and the page is one screen. */
 export interface About {
-  /**
-   * Only ever read aloud. The visible heading is the handwritten SVG, which is
-   * marked decorative — keep this the same words so both audiences get one page.
-   */
+  /** Screen-reader heading; keep it aligned with the decorative handwritten SVG. */
   heading: string
-  /**
-   * The paragraphs in playback order. Each fades in, waits to be read, then falls
-   * out of view. After the final paragraph, the heading erases and the signature draws.
-   *
-   * Where a paragraph breaks into lines is the layout's business, not this string's.
-   */
+  /** Playback-ordered paragraphs; the final one leads into the signature animation. */
   paragraphs: string[]
 }
 

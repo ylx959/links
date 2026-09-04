@@ -1,21 +1,9 @@
 import { icons } from '../icons/registry'
 import { newTabProps, type LinkItem } from '../data'
 
-/**
- * Pill outline button: the brand mark sits in a filled puck on the right. On hover the puck
- * travels to the left edge, the mark gives way to an arrow, and the label steps
- * aside — the button rearranges itself around the act of leaving.
- *
- * `@container` makes the pill its own container so the puck's travel distance
- * (`100cqw`) is the pill's own width. That keeps the move on `transform` instead
- * of animating `right`, so no layout runs per frame.
- */
+/** Hover moves the icon puck across its container with transform, avoiding per-frame layout. */
 
-/**
- * 圓圈位移與文字讓位共用這一組時間 — 要調快慢改這裡就好。
- * 進場 1000ms（`group-hover:duration-1000`），退場 600ms：
- * 滑開時應該立刻收回，用同樣的長度會拖沓。
- */
+/** 圓圈與文字共用速度：進場 1000ms、退場 600ms。 */
 const TRAVEL = 'duration-600 ease-out group-hover:duration-1000'
 
 /** 圓圈裡兩個圖示的交叉淡入淡出，比位移短一截，才不會蓋掉移動本身。 */

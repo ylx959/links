@@ -1,10 +1,4 @@
-/**
- * 第一屏唯一一個有顏色的東西。
- *
- * 彩蛋要有人找得到才叫彩蛋，但立一個「↓ Scroll」就等於自己把答案講完了。
- * 這裡放的是下面那行手寫字的句點 —— 同一個藍、同一個大小，先出現在這裡等人按。
- * 用 <a href> 而不是 button：鍵盤 Tab 得到、右鍵開得了、JS 掛了也還能捲。
- */
+/** 第一屏以手寫標題的藍色句點提示可捲動；連結在無 JS 時仍可使用。 */
 export function ScrollClue({ targetId, label }: { targetId: string; label: string }) {
   return (
     <a

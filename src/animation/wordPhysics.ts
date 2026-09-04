@@ -1,29 +1,13 @@
 import Matter from 'matter-js'
 
-/**
- * 掉字用的物理世界。
- *
- * 時間軸決定何時投放與重置單字。世界沒有地板；單字越過底部界線後會從物理世界移除。
- * 左右牆避免旋轉中的單字撐出橫向捲軸。
- *
- * 座標系是 [data-stage]（它是 position: relative）。單字一旦開始掉就變成 absolute
- * 並釘死在原點，位置與角度全部由 transform 表達 —— 於是每幀只重繪、不重排。
- */
+/** 無地板的掉字物理世界；牆限制橫向溢出，transform 負責相對 stage 的每幀位移。 */
 
 /** 固定步長保持不同幀率下的物理結果一致。 */
 const STEP = 1000 / 60
-/**
- * 「快轉到掉完」最多跑幾步。
- *
- * 重切行後用固定步數快進到結束；上限避免異常碰撞造成無限循環。
- */
+/** 重切行後快轉到掉完的步數上限，避免異常碰撞造成無限循環。 */
 const SETTLE_STEPS = 600
 
-/**
- * 牆再往版面內縮多少。
- *
- * 為旋轉後超出物理方塊的文字保留水平空間。
- */
+/** 牆向內縮的距離，為旋轉文字保留水平空間。 */
 const WALL_INSET = 24
 
 /** 給每個單字的初始擾動。完全垂直落下太整齊，看起來像掉格子而不是掉東西。 */
@@ -37,27 +21,13 @@ export function createWordPhysics(stage: HTMLElement) {
   let walls: Matter.Body[] = []
   let dropped: { el: HTMLElement; body: Matter.Body }[] = []
   const activeElements = new Set<HTMLElement>()
-  /**
-   * 已經量好、建好 body，但還沒放手的字。
-   *
-   * 量位置要 getBoundingClientRect，那是一次強制同步回流。放手那一幀是 GSAP 的
-   * tl.call() 叫起來的 —— 筆畫和透明度剛寫完，文件是髒的，這時候一讀就得等整頁
-   * 重算，而一整段的字是同時放手的。那一幀於是被撐爆，看起來就是散開的瞬間打嗝。
-   *
-   * 所以量測與建 body 全部提前到版面靜止時做完，放手那一幀只剩「把現成的 body
-   * 丟進世界」—— 沒有讀，就沒有回流。
-   */
+  /** 預先量好但尚未投放的 body，避免投放當幀讀取 DOM 造成強制回流。 */
   const pending = new Map<HTMLElement, Matter.Body>()
   let frame = 0
   /** 越過這條線（相對 stage）就算掉出畫面了。 */
   let cullY = Infinity
 
-  /**
-   * 左右牆與「掉出去」的界線，座標同樣相對於 stage。
-   *
-   * 有牆才不用像純補間那樣自己夾範圍：字撞到邊就滑回版面裡，不會掉出去把頁面
-   * 撐出一條橫向捲軸。
-   */
+  /** 設定相對 stage 的左右牆與移除界線，防止文字撐出橫向捲軸。 */
   const setBounds = (edgeL: number, edgeR: number, cull: number) => {
     if (walls.length) Matter.Composite.remove(engine.world, walls)
     const left = edgeL + WALL_INSET
@@ -77,10 +47,7 @@ export function createWordPhysics(stage: HTMLElement) {
 
   const sync = () => {
     dropped.forEach(({ el, body }) => {
-      // 只寫 transform。改 left/top 每次都是一次重排，一段四五十個字、每幀重排一次，
-      // 掉落全程都在跟版面引擎拔河；transform 只走合成與繪製。
-      // 字釘在 stage 原點（left/top 都是 0），位移由前面那個 translate 補上，
-      // 後面的 -50% 把錨點挪到方塊中心 —— 那才是 body.position 的意思。
+      // 只寫 transform 以免重排；translate(-50%) 讓錨點對齊 body 中心。
       el.style.transform =
         `translate(${body.position.x}px, ${body.position.y}px)` +
         ` translate(-50%, -50%) rotate(${body.angle}rad)`
@@ -122,13 +89,7 @@ export function createWordPhysics(stage: HTMLElement) {
     return body
   }
 
-  /**
-   * 先量好、先建好，但先不放進世界。
-   *
-   * 挑版面靜止、沒有動畫在跑的時候呼叫（歸零之後），把放手那一幀的工作預先清空。
-   * 已經量過或已經在掉的字會被跳過，所以重複呼叫是免費的 —— 沒有東西要量時，
-   * 連 stage 的那一次 getBoundingClientRect 都不會發生。
-   */
+  /** 在版面靜止時預建 body；已量過或正在掉落的字會跳過。 */
   const prime = (words: HTMLElement[]) => {
     const batch = words.filter((el) => !activeElements.has(el) && !pending.has(el))
     if (!batch.length) return
@@ -175,8 +136,7 @@ export function createWordPhysics(stage: HTMLElement) {
   const reset = () => {
     if (frame) cancelAnimationFrame(frame)
     frame = 0
-    // 掉出去的那些已經不在 dropped 裡了，但 style 還留在它們身上 —— 所以清的是
-    // 「這一輪碰過的每一個字」，不是「現在還在掉的那些」。
+    // 清除本輪所有碰過的字，包括已離開 dropped 的元素。
     activeElements.forEach((el) => {
       el.style.position = ''
       el.style.margin = ''

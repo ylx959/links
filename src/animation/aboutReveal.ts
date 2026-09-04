@@ -6,18 +6,7 @@ import { createWordPhysics } from './wordPhysics'
 
 gsap.registerPlugin(DrawSVGPlugin, ScrollTrigger, SplitText)
 
-/**
- * About 那一屏，捲到就自己演完：
- *
- *   落款一筆一筆寫完 → 收了筆，第一段才在原地淡進來
- *   → 停一下讓人讀完 → 整段以「單字」為單位掉下去，一路掉出畫面底部
- *   → 下一段在原位淡進來 → 四段都講完、都掉光
- *   → 「About me.」倒著一筆一筆被擦掉
- *   → 空一拍，親筆簽名在視窗正中央畫出來
- *   → 收筆之後簽名就一直在那裡輕輕浮著、輕輕呼吸，滑過去再微微放大
- *
- * 進場以段落為單位，退場以單字為單位。掉落由 wordPhysics 處理；完全捲離視線後重置。
- */
+/** About 動畫：寫標題、逐段顯示與掉字、擦除標題，最後畫出並浮動簽名。 */
 
 /** 每秒畫完 SVG 寬度的比例。 */
 const PEN_SPEED = 0.6
@@ -31,55 +20,22 @@ const ERASE_LIFT = '>-=0.12'
 const ERASE_GAP = 0.35
 const SIGNOFF_GAP = 0.7
 
-/**
- * 一段話浮出來要多久。
- *
- * power1.out 讓透明度在整段時間內持續變化，避免過早接近全不透明。
- */
+/** 段落淡入時間；power1.out 避免過早接近全不透明。 */
 const FADE_IN = 1.8
-/**
- * 收筆到第一段浮出來之間的空拍。
- *
- * 讓標題寫完後停頓，再顯示第一段。
- */
+/** 標題收筆到首段顯示之間的停頓。 */
 const FADE_GAP = 0.4
 
-/**
- * 浮完到開始掉，中間留的閱讀時間。
- *
- * 依字數延長每段的閱讀時間。
- */
+/** 淡入後的閱讀時間，由基本值加上字數調整。 */
 const HOLD_BASE = 0.8
 const HOLD_PER_CHAR = 0.01
 
-/**
- * 過了區塊底緣再多遠就算掉出去了。
- *
- * 留出旋轉後的字高，避免文字在區塊邊緣消失。
- */
+/** 超過區塊底緣後的移除距離，替旋轉文字保留高度。 */
 const CULL_BELOW = 120
 
-/**
- * 從放手到下一段開始浮，中間留多久。
- *
- * 物理引擎沒有可供時間軸查詢的完成時間，因此顯式保留掉落窗口。
- */
+/** 投放到下一段淡入的時間窗，用來銜接無法查詢完成時間的物理引擎。 */
 const FALL_WINDOW = 1
 
-/**
- * 收筆之後，簽名不會就這樣定住。
- *
- * 上下漂 7px、放大 1.8%，都是「餘光才察覺得到」的量 —— 目的是讓那個記號看起來還活著，
- * 不是印上去的圖片。兩條補間同時開始但長度不同，於是漂與呼吸不會永遠對齊，
- * 看起來就不像節拍器。父時間軸 yoyo，所以來回都停在原位，接得上也停得住。
- */
-/**
- * 滑過簽名時多放大的那一點。
- *
- * 只比呼吸大一點點，剛好感覺得出是「回應了我」，又不會把簽名變成一顆按鈕 ——
- * 它不能點，放大只是承認你摸到它了。放在外層 div 上，呼吸放在裡面的 svg 上，
- * 兩者各動各的 scale，不會互相蓋掉。
- */
+/** Hover 縮放套在外層，與 SVG 本身的呼吸動畫互不覆蓋。 */
 const HOVER_SCALE = 1.02
 const HOVER_TIME = 0.45
 
@@ -89,11 +45,7 @@ const BREATH_SCALE = 1.018
 const BREATH_TIME = 4.2
 
 const START = 'top 68%'
-/**
- * 歸零的界線：落款本身掉出視窗下緣。
- *
- * 以標題而非整個 min-h-dvh 區塊為觸發點，確保頁首仍有足夠捲動距離跨過界線。
- */
+/** 標題離開視窗下緣時歸零，確保頁首保有足夠捲動距離。 */
 const REWIND = 'top bottom'
 
 /** 依筆畫長度和 SVG 寬度計算時間。 */
@@ -121,11 +73,7 @@ const write = (
   })
 }
 
-/**
- * 倒著擦掉：最後寫的那一筆最先不見，每一筆從收筆處往起筆處縮回去。
- *
- * drawSVG 從 `0% 100%` 收到 `0% 0%`，固定起筆端並倒退可見線段的尾端。
- */
+/** 反向擦除筆畫，讓可見線段從收筆處縮回起筆處。 */
 const erase = (
   tl: gsap.core.Timeline,
   paths: SVGPathElement[],
@@ -148,12 +96,7 @@ const erase = (
   })
 }
 
-/**
- * 簽名寫完之後的無限迴圈：浮動 + 呼吸。
- *
- * 用 `.to()` 而不是 `.fromTo()` —— 起始值就是「現在在哪」，而 snapToStart 每一輪都會把
- * 它擺回 y:0 / scale:1，所以接手那一刻不會有位移的跳動。
- */
+/** 簽名完成後循環浮動與呼吸；起點由 snapToStart 統一重設。 */
 const createFloat = (target: SVGSVGElement) =>
   gsap
     .timeline({ paused: true, repeat: -1, yoyo: true })
@@ -169,11 +112,7 @@ const createFloat = (target: SVGSVGElement) =>
       0,
     )
 
-/**
- * 必須跑在 `useGSAP()` 裡。回傳的 cleanup 會被它接走 —— SplitText 包出來的
- * `<span>` 和 ScrollTrigger 都不在 context 的自動回收範圍內（前者改的是 DOM，
- * 後者活在 ScrollTrigger 自己的清單上），所以這裡自己收。
- */
+/** 在 useGSAP 中執行，並自行清除 SplitText 節點與 ScrollTrigger。 */
 export function playAboutReveal(section: HTMLElement | null): (() => void) | undefined {
   if (!section) return
 
@@ -220,14 +159,7 @@ export function playAboutReveal(section: HTMLElement | null): (() => void) | und
     /** 這一刻「應該」是演完的狀態嗎。重切行之後要靠它決定補到頭還是補到尾。 */
     let revealed = false
 
-    /**
-     * 量物理世界的邊界，並把版面高度釘住。
-     *
-     * 只在切完行時量這一次就夠 —— 淡入動的是 autoAlpha，而 autoAlpha 走的是
-     * visibility，字位一開始就佔好了，整段浮出來版面一格都沒動過。
-     *
-     * 地板與字都在同一刻量，所以兩者的差是版面上的相對距離，之後怎麼捲都還算數。
-     */
+    /** 切字後量測物理邊界並固定 stage 高度，避免掉字造成版面跳動。 */
     const measure = () => {
       const origin = stage.getBoundingClientRect()
       const box = section.getBoundingClientRect()
@@ -240,20 +172,11 @@ export function playAboutReveal(section: HTMLElement | null): (() => void) | und
         box.bottom + CULL_BELOW - origin.top,
       )
 
-      // 字掉下去之後會脫離文件流，那一段的 <p> 會塌掉。四段疊在同一個 grid 格子裡，
-      // 格子高度取最高的那一段 —— 塌掉的要是正好是最高的那一段，剩下的段落就會整批
-      // 往上跳。先把量到的高度釘住，版面就不會因為誰掉下去而動。
+      // 固定最高段落的高度，避免文字脫離文件流後整組上跳。
       stage.style.minHeight = `${origin.height}px`
     }
 
-    /**
-     * 直接擺回開場前的樣子，不經過動畫。
-     *
-     * 這是唯一算數的歸零手段。曾經以為把時間軸倒回 0 就等於還原起始值 —— 不是：
-     * 那些 `immediateRender: false` 的 fromTo 只有真的被渲染到才會寫回起始值，倒帶時
-     * 有將近一半的目標根本沒被碰到，掉下去的位移就留在 style 上。當下看不出來（字是
-     * 隱形的），下一輪淡入時它們就帶著上一輪的位移和角度浮出來 —— 那就是「亂掉」。
-     */
+    /** 直接還原開場狀態；倒帶不會重設尚未渲染的 fromTo 目標。 */
     const snapToStart = () => {
       // 先把字從物理世界撈回來 —— 它們身上的 position/left/top 是引擎寫的，
       // GSAP 不知道有這回事，不撤掉的話下面設多少 x/y 都沒有用。
@@ -288,14 +211,10 @@ export function playAboutReveal(section: HTMLElement | null): (() => void) | und
 
       wordGroups.forEach((words, i) => {
         const length = paragraphs[i].textContent?.length ?? 0
-        // 第一段接在落款最後一筆之後（隔一拍），後面的接在前一段掉完之後。
-        // 兩種都是「量現在的結尾」——不能寫相對位置，每加一段時間軸就變長，
-        // 相對位置量到的會是新的結尾。
+        // 首段接在標題後，其餘段落接在前段掉落窗口後。
         const fadeAt = tl.duration() + (i === 0 ? FADE_GAP : 0)
 
-        // 整段一起浮，位置不動 —— 沒有位移、沒有逐字，就是原地從沒有到有。
-        // 目標是 <p> 本身而不是切出來的單字：一段話是一個東西，各自淡入會散成一片
-        // 閃爍的碎片。
+        // 淡入整個段落，避免個別單字產生閃爍。
         tl.fromTo(
           paragraphs[i],
           { autoAlpha: 0 },
@@ -324,9 +243,7 @@ export function playAboutReveal(section: HTMLElement | null): (() => void) | und
       master?.kill()
       measure()
       master = buildMaster()
-      // 重切多半發生在轉螢幕或縮視窗。已經演完就直接補到結局，不要當著人面重播一次。
-      // 補間可以 progress(1) 一步到位，物理不行 —— 它只會往前跑。所以讓引擎空跑到
-      // 字都掉出去為止，兩邊才會停在同一個結局。
+      // 重切時若已播完，補間跳到結尾並讓物理引擎快轉至相同狀態。
       if (revealed) {
         master.progress(1)
         physics.settle()
@@ -336,12 +253,7 @@ export function playAboutReveal(section: HTMLElement | null): (() => void) | und
       } else snapToStart()
     }
 
-    // 「一行」是版面算出來的，不是資料裡寫死的。autoSplit 會自己等
-    // document.fonts.ready，也會在寬度或字級變動時重切。
-    //
-    // onSplit 只負責交出新的那批字，不建動畫。之前把時間軸建在這裡是錯的：重切會把
-    // 上一輪回傳的動畫 revert 掉，字體一載入完就正好把寫到一半的筆畫砍斷。
-    // 動畫的生死要由捲動決定，不能由「行怎麼切」決定。
+    // autoSplit 依版面重切；onSplit 只更新單字，動畫生命週期仍由捲動控制。
     const splits = paragraphs.map((p, i) =>
       SplitText.create(p, {
         // 只切到單字：掉下去的是單字，斷行也仍然斷在詞之間。

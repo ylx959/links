@@ -1,10 +1,6 @@
 import type { ReactNode, SVGProps } from 'react'
 
-/**
- * Every icon is an inline SVG so the site ships zero icon dependencies and
- * every glyph inherits `currentColor`. Add a new brand here and its key
- * becomes available to `LinkItem.icon` with full type-safety.
- */
+/** Inline SVG icons inherit currentColor; registry keys become typed LinkItem.icon values. */
 type IconProps = SVGProps<SVGSVGElement>
 
 const brand = (path: string) =>
@@ -16,10 +12,7 @@ const brand = (path: string) =>
     )
   }
 
-/**
- * 非方形的自訂標記。沿用原稿的 viewBox，preserveAspectRatio 預設會等比置中，
- * 所以 `size-4` 這種方形尺寸不會把它壓扁。原始檔留在 `src/assets/`。
- */
+/** 非方形標記沿用原始 viewBox，讓方形容器仍保持等比置中。 */
 const mark = (viewBox: string, children: ReactNode) =>
   function MarkIcon(props: IconProps) {
     return (

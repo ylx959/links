@@ -1,10 +1,7 @@
 import { icons } from '../icons/registry'
 import { newTabProps, type LinkItem } from '../data'
 
-/**
- * Icon-only links. The label never renders, so it carries the accessible name
- * instead — `aria-label` for screen readers, `title` for the hover tooltip.
- */
+/** Icon-only links use labels for screen readers and hover tooltips. */
 export function IconLinkRow({ items }: { items: LinkItem[] }) {
   if (items.length === 0) return null
 

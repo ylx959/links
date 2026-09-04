@@ -6,30 +6,10 @@ import type { Avatar as AvatarData } from '../data'
 /** 頭貼直徑（px）。改這一個數字就好 — 容器、圖片、縮寫字級都跟著走。 */
 const AVATAR_SIZE = 108
 
-/**
- * hover 時取景框張開到這個直徑（px）。照片本身不跟著放大 — 它維持
- * `AVATAR_SIZE * zoom` 的尺寸，只是圓框變大、露出原本被裁掉的邊。
- * 所以這個數字不能超過照片的實際寬高，否則圓框邊緣會露出底色。
- */
+/** Hover 時的取景框直徑；不得超過照片尺寸，否則邊緣會露出底色。 */
 const AVATAR_HOVER_SIZE = 120
 
-/**
- * Turns one requested nudge into the two mechanisms that can deliver it without
- * ever exposing the container behind the image.
- *
- * `object-cover` already oversizes the source on one axis and clips the excess;
- * `object-position` slides the crop across that excess for free. Only what the
- * cover crop cannot supply falls to an offset of the image box itself, whose
- * budget is the overhang `zoom` creates. Asking for more than both budgets
- * together is what puts a white crescent in the circle, so the request is
- * capped at their sum.
- *
- * @param offset    requested nudge, % of the frame; positive moves the image right / down
- * @param slack     cover overflow on this axis, as a fraction of the frame
- * @param rendered  the image box's real size in px
- * @param frame     the circle's diameter in px
- * @returns         `objectPct` for object-position, `shift` in px against the frame
- */
+/** Splits a requested nudge between object-position and image offset without exposing the frame. */
 function resolveNudge(
   offset: number,
   slack: number,
@@ -68,11 +48,7 @@ export function Avatar({ src, alt, initials = '', zoom = 1, offsetX = 0, offsetY
     { scope: box },
   )
 
-  // Zoom is the image's real layout size, never a CSS transform: a transform
-  // would upscale a raster the browser already sampled down to 140px, and the
-  // resampling artefacts in that raster are what read as grain. Sizing the
-  // element instead lets the browser sample the source straight to its final
-  // pixel size, once.
+  // Use layout dimensions instead of transform so the browser samples the raster only once.
   const rendered = AVATAR_SIZE * zoom
   // 只有取景框會變，照片不會 — `rendered` 刻意不吃 `frame`。
   const frame = open ? AVATAR_HOVER_SIZE : AVATAR_SIZE

@@ -10,12 +10,7 @@ const entrance = {
   ease: 'power2.out',
 } as const
 
-/**
- * Fade + downward slide for the page as a single block — no stagger, everything moves together.
- * Skipped under `prefers-reduced-motion`. If the page loads in a background tab,
- * playback waits until the tab becomes visible so the entrance still starts at frame one.
- * Runs inside a `useGSAP()` context, which reverts the matchMedia on unmount.
- */
+/** Fades and slides the page after the tab becomes visible; reduced motion skips playback. */
 export function playEntrance(target: Element | null): (() => void) | undefined {
   if (!target) return
 

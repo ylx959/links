@@ -13,10 +13,7 @@ function isExternal(item: LinkItem): boolean {
   return /^https?:\/\//i.test(item.href)
 }
 
-/**
- * The `<a>` attributes that open a link in a new tab, or nothing at all for links
- * that stay on the site (`mailto:`, `/resume.pdf`). Always safe to spread.
- */
+/** Returns safe new-tab attributes for external links and nothing for local links. */
 export function newTabProps(item: LinkItem): { target?: '_blank'; rel?: string } {
   if (!isExternal(item)) return {}
   return { target: '_blank', rel: 'noreferrer noopener' }
