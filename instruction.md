@@ -768,6 +768,7 @@ export type RingWobble = { show: () => void; hide: () => void }
   → 段落淡入 → 閱讀停頓 → 單字掉出畫面（共四次）
   → 倒序擦除標題
   → 畫出中央簽名
+  → 簽名開始輕輕漂浮＋呼吸（無限），滑鼠移上去再微微放大
 ```
 
 三個 GSAP 外掛各做一件事：
@@ -775,6 +776,22 @@ export type RingWobble = { show: () => void; hide: () => void }
 - `DrawSVGPlugin` 改變 SVG path 的可見區段，形成書寫與反向擦除。
 - `SplitText` 只把段落切到「單字」層級，並在字型或寬度改變時重新切分。
 - `ScrollTrigger` 在第二屏進場時播放，往回捲過標題時重置。
+
+最後那個浮動是一條獨立的無限 timeline（`createFloat`）：上下漂 `FLOAT_SHIFT`（7px）、
+放大到 `BREATH_SCALE`（1.018），兩條補間同時開始但長度不同（3.4s / 4.2s），所以漂與呼吸
+不會永遠對齊，看起來才不像節拍器；父時間軸 `yoyo`，來回都停在原位。
+
+hover 的放大掛在外層 `[data-signoff-hit]` 這個 div 上，呼吸掛在裡面的 `<svg>` 上 ——
+兩層各動各的 `scale`，不會互相覆蓋。覆蓋層本身是 `pointer-events-none`，而簽名那一塊要到
+最後一筆寫完（`arm(true)`）才打開 pointer-events：在那之前它壓在段落上面，開著會擋住選取。
+歸零時 `arm(false)` 會關掉、殺掉可能停在半途的放大補間，並把 scale 擺回 1。
+
+浮動不能掛在主 timeline 裡 —— 無限重複的子項會讓主時間軸長度變成無限，重播與 seek 都算不出來。
+所以改成主 timeline 的 `onComplete` 去 `restart()` 它。轉螢幕重建時走的是 `progress(1)`，
+那是 seek 不會觸發 `onComplete`，所以那條路徑另外補一次 `restart()`。歸零時
+`float.pause()` 之後要自己 `gsap.set(y: 0, scale: 1)`：`pause(0)` 會把時間軸渲染到起點，
+等於又把位移寫回簽名上。整段仍然活在 `prefers-reduced-motion: no-preference` 裡，
+所以要求減少動態的人看到的是靜止的簽名。
 
 `wordPhysics.ts` 接手掉落後的單字。每個字的 DOM 尺寸會變成 Matter.js 的矩形 body，
 物理引擎每次以固定的 1/60 秒步長更新；左右靜態牆防止字旋轉出版面。單字完整越過底部
@@ -906,6 +923,8 @@ About 的 `.signature svg` 統一接管寬度與 overflow，`.signature path` �
 | 按鈕 hover 圓點速度 | `LinkButton.tsx` 的 `TRAVEL` 常數 |
 | 頭貼波動速度 | `avatarRing.ts` 的 `MORPH` / `AMP` / `ENTER` / `SETTLE` |
 | About 筆速、閱讀時間、段落淡入 | `aboutReveal.ts` 最上方的時間常數 |
+| 簽名漂浮幅度 / 呼吸快慢 | `aboutReveal.ts` 的 `FLOAT_SHIFT` / `FLOAT_TIME` / `BREATH_SCALE` / `BREATH_TIME` |
+| 簽名 hover 放大幅度 | `aboutReveal.ts` 的 `HOVER_SCALE` / `HOVER_TIME` |
 | About 掉落重力、擾動、邊界 | `wordPhysics.ts` 的 gravity / `NUDGE_*` / `WALL_INSET` |
 | 新增一個平台圖示 | `src/icons/registry.tsx` 加一個 key，然後就能在 `links.ts` 用了 |
 

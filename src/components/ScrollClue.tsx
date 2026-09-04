@@ -5,7 +5,7 @@
  * 這裡放的是下面那行手寫字的句點 —— 同一個藍、同一個大小，先出現在這裡等人按。
  * 用 <a href> 而不是 button：鍵盤 Tab 得到、右鍵開得了、JS 掛了也還能捲。
  */
-export function ScrollCue({ targetId, label }: { targetId: string; label: string }) {
+export function ScrollClue({ targetId, label }: { targetId: string; label: string }) {
   return (
     <a
       href={`#${targetId}`}

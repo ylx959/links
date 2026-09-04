@@ -9,7 +9,7 @@ export const profile: Profile = {
     offsetX: 10,
     offsetY: 16,
     alt: 'avatar of Yang Lin-Hsuan',
-    initials: 'YN',
+    initials: 'YLX',
   },
   quote: {
     text: '“Discovery isn’t about finding a new path. It’s about expanding what you’re capable of building.”',

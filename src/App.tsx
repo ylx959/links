@@ -6,7 +6,7 @@ import { ProfileHeader } from './components/ProfileHeader'
 import { LinkList } from './components/LinkList'
 import { QuoteBlock } from './components/QuoteBlock'
 import { IconLinkRow } from './components/IconLinkRow'
-import { ScrollCue } from './components/ScrollCue'
+import { ScrollClue } from './components/ScrollClue'
 import { AboutSection } from './components/AboutSection'
 
 export default function App() {
@@ -39,7 +39,7 @@ export default function App() {
           </footer>
         </div>
 
-        {about && <ScrollCue targetId="about" label={about.heading} />}
+        {about && <ScrollClue targetId="about" label={about.heading} />}
       </section>
 
       {about && <AboutSection {...about} />}

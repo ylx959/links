@@ -14,6 +14,7 @@ gsap.registerPlugin(DrawSVGPlugin, ScrollTrigger, SplitText)
  *   → 下一段在原位淡進來 → 四段都講完、都掉光
  *   → 「About me.」倒著一筆一筆被擦掉
  *   → 空一拍，親筆簽名在視窗正中央畫出來
+ *   → 收筆之後簽名就一直在那裡輕輕浮著、輕輕呼吸，滑過去再微微放大
  *
  * 進場以段落為單位，退場以單字為單位。掉落由 wordPhysics 處理；完全捲離視線後重置。
  */
@@ -64,6 +65,28 @@ const CULL_BELOW = 120
  * 物理引擎沒有可供時間軸查詢的完成時間，因此顯式保留掉落窗口。
  */
 const FALL_WINDOW = 1
+
+/**
+ * 收筆之後，簽名不會就這樣定住。
+ *
+ * 上下漂 7px、放大 1.8%，都是「餘光才察覺得到」的量 —— 目的是讓那個記號看起來還活著，
+ * 不是印上去的圖片。兩條補間同時開始但長度不同，於是漂與呼吸不會永遠對齊，
+ * 看起來就不像節拍器。父時間軸 yoyo，所以來回都停在原位，接得上也停得住。
+ */
+/**
+ * 滑過簽名時多放大的那一點。
+ *
+ * 只比呼吸大一點點，剛好感覺得出是「回應了我」，又不會把簽名變成一顆按鈕 ——
+ * 它不能點，放大只是承認你摸到它了。放在外層 div 上，呼吸放在裡面的 svg 上，
+ * 兩者各動各的 scale，不會互相蓋掉。
+ */
+const HOVER_SCALE = 1.02
+const HOVER_TIME = 0.45
+
+const FLOAT_SHIFT = 7
+const FLOAT_TIME = 3.4
+const BREATH_SCALE = 1.018
+const BREATH_TIME = 4.2
 
 const START = 'top 68%'
 /**
@@ -126,6 +149,27 @@ const erase = (
 }
 
 /**
+ * 簽名寫完之後的無限迴圈：浮動 + 呼吸。
+ *
+ * 用 `.to()` 而不是 `.fromTo()` —— 起始值就是「現在在哪」，而 snapToStart 每一輪都會把
+ * 它擺回 y:0 / scale:1，所以接手那一刻不會有位移的跳動。
+ */
+const createFloat = (target: SVGSVGElement) =>
+  gsap
+    .timeline({ paused: true, repeat: -1, yoyo: true })
+    .to(target, { y: -FLOAT_SHIFT, duration: FLOAT_TIME, ease: 'sine.inOut' }, 0)
+    .to(
+      target,
+      {
+        scale: BREATH_SCALE,
+        transformOrigin: '50% 50%',
+        duration: BREATH_TIME,
+        ease: 'sine.inOut',
+      },
+      0,
+    )
+
+/**
  * 必須跑在 `useGSAP()` 裡。回傳的 cleanup 會被它接走 —— SplitText 包出來的
  * `<span>` 和 ScrollTrigger 都不在 context 的自動回收範圍內（前者改的是 DOM，
  * 後者活在 ScrollTrigger 自己的清單上），所以這裡自己收。
@@ -136,9 +180,10 @@ export function playAboutReveal(section: HTMLElement | null): (() => void) | und
   const frame = section.querySelector<HTMLElement>('[data-signature]')
   const signature = frame?.querySelector('svg') ?? null
   const stage = section.querySelector<HTMLElement>('[data-stage]')
-  const signOff = section.querySelector<HTMLElement>('[data-signoff]')?.querySelector('svg') ?? null
+  const hit = section.querySelector<HTMLElement>('[data-signoff-hit]')
+  const signOff = hit?.querySelector('svg') ?? null
   const paragraphs = gsap.utils.toArray<HTMLElement>(section.querySelectorAll('[data-para]'))
-  if (!frame || !signature || !stage || !signOff || !paragraphs.length) return
+  if (!frame || !signature || !stage || !hit || !signOff || !paragraphs.length) return
 
   const mm = gsap.matchMedia()
 
@@ -150,6 +195,26 @@ export function playAboutReveal(section: HTMLElement | null): (() => void) | und
     const signOffSpanX = signOff.viewBox.baseVal.width || signOff.getBBox().width
 
     const physics = createWordPhysics(stage)
+    const float = createFloat(signOff)
+
+    const enter = () =>
+      gsap.to(hit, { scale: HOVER_SCALE, duration: HOVER_TIME, ease: 'power2.out', overwrite: 'auto' })
+    const leave = () =>
+      gsap.to(hit, { scale: 1, duration: HOVER_TIME, ease: 'power2.out', overwrite: 'auto' })
+    hit.addEventListener('pointerenter', enter)
+    hit.addEventListener('pointerleave', leave)
+
+    /** 簽完名才讓它可以被摸到；歸零時收回去，順便把 hover 放大也擦掉。 */
+    const arm = (on: boolean) => {
+      if (on) {
+        gsap.set(hit, { pointerEvents: 'auto' })
+        return
+      }
+      // 可能正好停在放大到一半 —— 先把補間收掉，再把尺寸擺回去。
+      gsap.killTweensOf(hit)
+      gsap.set(hit, { pointerEvents: 'none', scale: 1 })
+    }
+
     const wordGroups: HTMLElement[][] = paragraphs.map(() => [])
     let master: gsap.core.Timeline | null = null
     /** 這一刻「應該」是演完的狀態嗎。重切行之後要靠它決定補到頭還是補到尾。 */
@@ -193,6 +258,11 @@ export function playAboutReveal(section: HTMLElement | null): (() => void) | und
       // 先把字從物理世界撈回來 —— 它們身上的 position/left/top 是引擎寫的，
       // GSAP 不知道有這回事，不撤掉的話下面設多少 x/y 都沒有用。
       physics.reset()
+      // 浮動是無限迴圈，不會自己結束 —— 先停手，再把它寫在簽名上的 transform 抹掉。
+      // 不能用 pause(0)：那會把時間軸渲染到 progress 0，等於又把起始值寫回去一次。
+      float.pause()
+      arm(false)
+      gsap.set(signOff, { y: 0, scale: 1, transformOrigin: '50% 50%' })
       gsap.set([...strokes, ...signOffStrokes], { drawSVG: '0%' })
       gsap.set(
         wordGroups.flat(),
@@ -205,7 +275,14 @@ export function playAboutReveal(section: HTMLElement | null): (() => void) | und
     }
 
     const buildMaster = () => {
-      const tl = gsap.timeline({ paused: true })
+      // 最後一筆收了，簽名才開始浮 —— 寫字的過程本身不該晃。
+      const tl = gsap.timeline({
+        paused: true,
+        onComplete: () => {
+          float.restart()
+          arm(true)
+        },
+      })
 
       write(tl, strokes, spanX, 0)
 
@@ -253,6 +330,9 @@ export function playAboutReveal(section: HTMLElement | null): (() => void) | und
       if (revealed) {
         master.progress(1)
         physics.settle()
+        // progress() 是 seek，不會觸發 onComplete，所以浮動與 hover 要自己補上。
+        float.restart()
+        arm(true)
       } else snapToStart()
     }
 
@@ -304,6 +384,10 @@ export function playAboutReveal(section: HTMLElement | null): (() => void) | und
 
     return () => {
       master?.kill()
+      float.kill()
+      hit.removeEventListener('pointerenter', enter)
+      hit.removeEventListener('pointerleave', leave)
+      gsap.killTweensOf(hit)
       play.kill()
       rewind.kill()
       physics.destroy()

@@ -57,13 +57,16 @@ export function AboutSection({ heading, paragraphs }: About) {
         ))}
       </div>
 
-      {/* 收尾簽名脫離文件流，固定在區塊中央。 */}
+      {/* 收尾簽名脫離文件流，固定在區塊中央。寫完之後會一直輕輕漂浮，hover 再微微放大。 */}
       <div
         data-signoff
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 z-[2] flex items-center justify-center"
       >
+        {/* 滑鼠要摸得到的就是簽名這一塊，不是整個覆蓋層 —— pointer-events 由動畫在
+            寫完最後一筆時才打開，在那之前它不該擋住底下段落的選取。 */}
         <div
+          data-signoff-hit
           className="signature w-[60vw] sm:w-[26vw]"
           // 內容是 build 時就固定的本地檔案，不是任何外部輸入。
           dangerouslySetInnerHTML={{ __html: signOffMarkup }}
