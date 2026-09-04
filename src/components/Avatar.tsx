@@ -116,6 +116,7 @@ export function Avatar({ src, alt, initials = '', zoom = 1, offsetX = 0, offsetY
             width={Math.round(rendered)}
             height={Math.round(rendered)}
             decoding="async"
+            draggable={false}
             style={{
               width: rendered,
               height: rendered,
@@ -123,7 +124,7 @@ export function Avatar({ src, alt, initials = '', zoom = 1, offsetX = 0, offsetY
               top: inset + y.shift,
               objectPosition: `${x.objectPct}% ${y.objectPct}%`,
             }}
-            className="absolute max-w-none object-cover transition-[left,top] duration-300 ease-out"
+            className="absolute max-w-none object-cover transition-[left,top] duration-300 ease-out select-none"
             onLoad={(e) => setAspect(e.currentTarget.naturalWidth / e.currentTarget.naturalHeight)}
             onError={() => setFailed(true)}
           />

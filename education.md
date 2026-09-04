@@ -584,20 +584,35 @@ function initialsFrom(name: string): string {
 
 ### 9.4 `LinkList.tsx` — 清單
 
+整個檔案就這麼短，職責只有一件事：把 `LinkGroup[]` 攤成畫面。
+
 ```tsx
-{groups.map((group) => (
-  <section key={group.id}>
-    <ul>{group.items.map((item) => <li key={item.id}><LinkButton item={item} /></li>)}</ul>
-  </section>
-))}
+<nav aria-label="Links" className="flex flex-col gap-6">
+  {groups.map((group) => (
+    <section key={group.id} aria-labelledby={group.title ? `group-${group.id}` : undefined}>
+      {group.title && <h2 id={`group-${group.id}`}>{group.title}</h2>}
+      <ul>{group.items.map((item) => <li key={item.id}><LinkButton item={item} /></li>)}</ul>
+    </section>
+  ))}
+</nav>
 ```
 
 `.map()` 是「陣列 → 陣列」的轉換：每一筆資料變成一段 JSX。
 `key` 是 React 用來辨認「哪一筆是哪一筆」的身分證，**列表一定要給**，
-這就是 `LinkItem` 一開始就設計了 `id` 欄位的原因。
+這就是 `LinkItem` 和 `LinkGroup` 一開始就設計了 `id` 欄位的原因。
 
-語意標籤也是刻意的：`<nav>` + `<ul>/<li>` 讓螢幕閱讀器知道這是導覽清單，
-而不是一堆無關的連結。
+`{group.title && <h2>...</h2>}` 是條件渲染的慣用寫法：`&&` 左邊是假值時整段算出
+`false`，React 就當作沒東西、不畫。因為 `types.ts` 裡 `title?` 是可選的，
+而 `links.ts` 現在只有一組 `primary` 且沒寫 `title`，所以這行標題實際上不會出現——
+它是留給「之後想分成 Work / Social 兩區」的擴充點。
+
+`aria-labelledby` 也跟著同一個條件走：有標題時，把 `<section>` 指向那個 `<h2>` 的
+`id`，螢幕閱讀器就會唸「Work 區塊」；沒標題時給 `undefined`，React 會直接不輸出
+這個屬性，避免指向一個不存在的 id。
+
+語意標籤是刻意的：`<nav>` + `<ul>/<li>` 讓螢幕閱讀器知道這是導覽清單，
+而不是一堆無關的連結。`aria-label="Links"` 則是給這個 `<nav>` 取名，
+因為頁面上可能不只一個導覽區。
 
 ### 9.5 `LinkButton.tsx` — 那顆膠囊按鈕
 
