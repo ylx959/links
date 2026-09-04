@@ -1,5 +1,7 @@
 # Yang Lin Hsuan's LinkTree
----
+
+Here's the link:  [YLX | LinkTree](https://linktree.ylx-studio.com/)
+
 ![cover](src/assets/readme-cover.png)
 
 Yang Lin-Hsuan's link hub. Two pages that gathers the portfolio, GitHub, LinkedIn and contact details behind a single URL — the one you paste where only one link fits, like an Instagram bio.
