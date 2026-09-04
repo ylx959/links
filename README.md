@@ -1,20 +1,37 @@
-# Links
+# Yang Lin Hsuan's LinkTree
+---
+![cover](src/assets/readme-cover.png)
 
-Yang Lin-Hsuan's link hub. One page that gathers the portfolio, GitHub, LinkedIn and contact details behind a single URL — the one you paste where only one link fits, like an Instagram bio.
+Yang Lin-Hsuan's link hub. Two pages that gathers the portfolio, GitHub, LinkedIn and contact details behind a single URL — the one you paste where only one link fits, like an Instagram bio.
+
+## Build with
+
+- React & TypeScript
+- Tailwind CSS v4 (@tailwindcss/vite)
+- Gsap
+
+>React + TypeScript + Tailwind v4 + Vite. GSAP drives the entrance animation, the avatar's hover ring, and the About reveal.
+
+## Highlights
+- **Interactive Link Buttons** — Built with 21st.dev components and smooth motion for a more responsive experience.
+- **Simple Link Rows** — Uses an icon library instead of individual SVG files, keeping the code cleaner and easier to maintain.
+- **Floating Avatar** — Uses `whileHover` to create a subtle floating motion when hovering over the photo.
+- **Signature Animation & Falling Text** — Adds playful motion to make the introduction feel more personal and engaging.
+
 
 ## Development
 
 ```bash
+git clone  git@github.com:ylx959/links.git
 npm install
 npm run dev      # http://localhost:5173
 npm run build    # outputs to dist/
 ```
 
-React + TypeScript + Tailwind v4 + Vite. GSAP drives the entrance animation, the avatar's hover ring, and the About reveal.
 
-## Editing the content
+## Editing your own content
 
-Everything lives in `src/data/`. No component needs touching:
+All you need to change lives in `src/data/` — unless you’re a developer and want to dig deeper.
 
 | File | Holds |
 |---|---|
@@ -23,63 +40,40 @@ Everything lives in `src/data/`. No component needs touching:
 | `site.ts` | Page title, description, canonical URL |
 | `about.ts` | The paragraph on the scroll-down screen. Delete the `about` key in `site.ts` and the page goes back to one screen |
 
-The `icon` field only accepts a name registered in `src/icons/registry.tsx` (github, linkedin, x, instagram, youtube, threads, discord, portfolio, mail, resume, link). A typo fails the build rather than rendering a blank slot. To add a platform, drop an SVG into the registry — its key becomes a valid option automatically.
+The `icon` field only accepts names registered in `src/icons/registry.tsx` (`github`, `linkedin`, `x`, `instagram`, `youtube`, `threads`, `discord`, `portfolio`, `mail`, `resume`, `link`). Typos fail the build instead of showing a blank icon. To add a platform, add its SVG to the registry — its key automatically becomes a valid option.
 
-The avatar is `public/avatar.webp`, pointed at by `avatar.src` in `profile.ts`. If the image fails to load the page falls back to `initials` — set it in `profile.ts`, or leave it out and the initials are derived from `name`.
+### Change the photo
 
-## The second screen
+Replace `public/avatar.webp`, or add another image to `public/` and update `avatar.src` in `src/data/profile.ts` (for example, `public/me.jpg` becomes `/me.jpg`). A square image works best. Adjust `zoom`, `offsetX`, and `offsetY` to crop it, update `alt`, and set `initials` as the fallback.
 
-Scroll past the links and there's an About screen. The only cue is the small blue dot at the
-bottom of the first screen — it's the same blue, and the same size, as the full stop at the end
-of the handwriting waiting below.
+### Change the handwritten title and signature
 
-The heading is a real handwritten SVG, drawn one stroke at a time with GSAP's DrawSVGPlugin.
-The signature is still finishing its last strokes when the first paragraph starts typing itself
-out, character by character, with a blue caret running ahead of the text.
+Replace the SVG you want to change:
 
-Then it plays itself out. Each paragraph holds long enough to be read, then breaks apart — not
-into letters, into **words** — and the words drop into a matter-js world: real gravity, real
-collisions, a small bounce, fading back to a quarter of their weight as they go. They land on the
-floor of the section, and on each other. The next paragraph types in over the top.
+| File | Appears as |
+|---|---|
+| `src/assets/about-signature.svg` | The large handwritten “About me.” title |
+| `src/assets/signature.svg` | Your personal signature shown at the end |
 
-All four paragraphs share one physics world, so the second paragraph's words genuinely land on the
-pile the first one left, and by the end there's a drift of readable words banked up along the
-bottom of the screen. The closing paragraph doesn't fall; it stays, and every paragraph is stacked
-above the heap so the line you're meant to be reading is never buried by the ones already spoken.
+Export open stroked paths—not outlined or filled letters—and keep each pen stroke as a separate `<path>`. Path order controls the drawing order. If you change the title words, also update `heading` in `src/data/about.ts` for screen readers.
 
-The whole run is about 22 seconds. Scroll away far enough that the signature clears the bottom of
-the window and it resets — the words come out of the world and back into the paragraph they came
-from — so returning plays it again from the first stroke. All of it is skipped under
-`prefers-reduced-motion`.
+## About Animation
+Scroll past the links to reach the **About** section, hinted by the small blue dot above.
+### How It Works
+- **Signature** — A handwritten SVG drawn stroke by stroke with GSAP `DrawSVGPlugin`.
+- **Typewriter** — Paragraphs type character by character with a blue caret.
+- **Falling Words** — Finished paragraphs split into words and fall with Matter.js physics: gravity, collisions, bounce, and fade.
+- **Shared World** — All paragraphs share one physics world, so words pile on each other. The final paragraph stays on screen.
+- **Timeline** — Runs for ~22 seconds and resets when you scroll away.
+- **Accessibility** — Skipped under `prefers-reduced-motion`.
+Physics is adapted from [React Bits](https://reactbits.dev) `FallingText`:
+```bash
+npx shadcn@latest add @react-bits/FallingText-TS-CSS
+```
 
-The engine settings come from [react-bits](https://reactbits.dev)' `FallingText`
-(`npx shadcn@latest add @react-bits/FallingText-TS-CSS`). That component is self-contained — it
-renders and centres its own text and starts on mount — so it can't sit inside a typewriter
-sequence. `src/animation/wordPhysics.ts` keeps its feel and hands the trigger to the timeline
-instead.
+src/animation/wordPhysics.ts keeps its physics behavior while handing control to the main timeline.
 
-### Editing the script
+## Rights
+© 2026 YLX Studio. All rights reserved, read License before you use it.
 
-`src/data/about.ts` holds `paragraphs` — an array, and the order is the running order. Add or
-remove entries freely; the timing is derived from each one's length, so nothing else needs
-touching. The **last** entry is the closing line and is the one that stays on screen.
 
-Keep them short. Every word that gets spoken becomes a rigid body on the floor, and the heap only
-grows upward — a long script piles words up behind the closing line. If that starts to crowd, the
-lever is `AboutSection.tsx`: shrinking the signature buys the heap headroom.
-
-### Swapping in your own handwriting
-
-Overwrite `src/assets/about-signature.svg` — nothing else needs touching. Two requirements:
-
-- **Open stroked paths, not outlines.** In Figma, draw with the pencil or vector tool and export
-  without running *Outline Stroke*. An outlined shape makes DrawSVG trace the *edge* of each
-  letter, which reads as a shape being outlined rather than a pen writing.
-- **`<path>` order is pen order.** Reorder them in the file to change which stroke is written first.
-
-The colour is taken over by `--accent` in `index.css`, so the `stroke` values in the file don't
-matter. Stroke width and caps stay with the file, so whatever you set in Figma is what you get.
-
-Layout proportions live in `AboutSection.tsx` and are all `vw`/`dvh`, measured off the design at
-full-screen size. The body type is sized in `vw` too — that's deliberate, and it's why each
-paragraph breaks into the same number of lines on a laptop and on a 27" display.
