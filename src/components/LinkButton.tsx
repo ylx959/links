@@ -3,8 +3,8 @@ import { newTabProps, type LinkItem } from '../data'
 
 /** Hover moves the icon puck across its container with transform, avoiding per-frame layout. */
 
-/** 圓圈與文字共用速度：進場 1000ms、退場 600ms。 */
-const TRAVEL = 'duration-600 ease-out group-hover:duration-1000'
+/** 圓圈與文字共用速度：進場 1000ms、退場 1200ms。 */
+const TRAVEL = 'duration-1200 ease-out group-hover:duration-1000'
 
 /** 圓圈裡兩個圖示的交叉淡入淡出，比位移短一截，才不會蓋掉移動本身。 */
 const SWAP = 'duration-200 group-hover:duration-500'
